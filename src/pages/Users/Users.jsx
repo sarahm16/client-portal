@@ -108,6 +108,14 @@ function Users() {
   };
 
   const handleSaveEdits = async (editedUser) => {
+    // Need to trim all strings, and lower case the email
+    editedUser = {
+      ...editedUser,
+      name: editedUser.name.trim(),
+      email: editedUser.email.trim().toLowerCase(),
+      phone: editedUser.phone ? editedUser.phone.trim() : "",
+    };
+
     const savedUser = await saveItemToAzure(editedUser, "users");
     setUsers((prevUsers) =>
       prevUsers.map((user) => (user.id === savedUser.id ? savedUser : user))
@@ -175,9 +183,10 @@ function Users() {
       renderCell: (params) => (
         <Box display="flex" alignItems="center" gap={1}>
           <BusinessIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-          <Typography variant="body2">{params.value?.client}</Typography>
+          <Typography variant="body2">{params.row?.client?.name}</Typography>
         </Box>
       ),
+      valueGetter: (value, row) => row.client?.name,
     },
     {
       field: "role",
@@ -267,6 +276,7 @@ function Users() {
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateUser}
+          users={users}
         />
       )}
 

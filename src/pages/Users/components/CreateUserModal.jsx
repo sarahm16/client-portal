@@ -20,6 +20,10 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
+// MUI Icons
 import CloseIcon from "@mui/icons-material/Close";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
@@ -29,6 +33,10 @@ const clientsWithPortal = [
     name: "GPM Investments. ",
   },
 ];
+
+const checkIfUserExists = (email, users) => {
+  return users.some((user) => user.email.toLowerCase() === email.toLowerCase());
+};
 
 // Email to send to new user
 const buildWelcomeEmail = (newUser, password) => {
@@ -128,7 +136,7 @@ const buildWelcomeEmail = (newUser, password) => {
   };
 };
 
-const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
+const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
   const { user } = useAuth();
   const { isInternalAdmin } = useRole();
 
@@ -141,8 +149,9 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
     status: "Active",
     password: "",
     passwordChanged: false,
+    rawPassword: "",
   });
-
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
@@ -170,6 +179,8 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
       newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
       newErrors.email = "Invalid email format";
+    } else if (checkIfUserExists(formData.email, users)) {
+      newErrors.email = "Email already exists";
     }
 
     if (formData.phone && !validatePhone(formData.phone)) {
@@ -206,6 +217,7 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     setTouched({
       name: true,
@@ -225,8 +237,10 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
       // Prepare data for submission
       formData.dateCreated = new Date().toLocaleDateString();
       formData.createdBy = user.name;
-      formData.password = genPass();
 
+      const password = genPass();
+      formData.password = password;
+      formData.rawPassword = password;
       // Save user to database
       onSubmit(formData);
 
@@ -236,7 +250,9 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
 
       // Reset form
       handleReset();
+      onClose();
     }
+    setLoading(false);
   };
 
   const handleReset = () => {
@@ -249,6 +265,7 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
       status: "Active",
       password: "",
       passwordChanged: false,
+      rawPassword: "",
     });
     setErrors({});
     setTouched({});
@@ -272,6 +289,14 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
         },
       }}
     >
+      {loading && (
+        <Backdrop
+          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={loading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
       <DialogTitle
         sx={{
           display: "flex",

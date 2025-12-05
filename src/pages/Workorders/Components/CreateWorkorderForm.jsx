@@ -93,7 +93,7 @@ function CreateWorkorderForm() {
   useEffect(() => {
     const fetchSites = async () => {
       const query = `SELECT * FROM c WHERE c.client = "${
-        client.client
+        client.name
       }" AND (${validSiteStatuses
         .map((status) => `c.status = "${status}"`)
         .join(" OR ")})`;
