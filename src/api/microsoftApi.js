@@ -2,12 +2,14 @@ import axios from "axios";
 
 export const getMicrosoftAccessToken = async () => {
   try {
-    const tokenResponse = await axios.get(
-      `${import.meta.VITE_PROXY_URL}/${
-        import.meta.VITE_AZURE_FUNCTIONS_URL
-      }/getAuth`
+    const tokenResponse = await axios.post(
+      `${import.meta.env.VITE_PROXY_URL}/${
+        import.meta.env.VITE_AZURE_FUNCTIONS_URL
+      }/dynamicGetAuth`,
+      {
+        company: "NFC",
+      }
     );
-    console.log("tokenResponse", tokenResponse);
     const accessToken = tokenResponse.data?.access_token;
 
     return accessToken;
@@ -23,18 +25,7 @@ export const sendEmailViaMicrosoft = async (emailData) => {
 
     const emailResponse = await axios.post(
       "https://graph.microsoft.com/v1.0/users/no-reply@nationalfacilitycontractors.com/sendMail",
-      {
-        message: {
-          subject: emailData.subject,
-          body: {
-            contentType: "HTML",
-            content: emailData.body,
-          },
-          toRecipients: emailData.to.map((recipient) => ({
-            emailAddress: { address: recipient },
-          })),
-        },
-      },
+      emailData,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

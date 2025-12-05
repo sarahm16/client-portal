@@ -3,6 +3,8 @@ import React, { useMemo, useState } from "react";
 // hooks
 import { usePermissions, useRole } from "../../../auth/hooks/usePermissions";
 import { useAuth } from "../../../auth/hooks/AuthContext";
+import genPass from "../../../utilities/genPass";
+import { sendEmailViaMicrosoft } from "../../../api/microsoftApi";
 
 // MUI
 import {
@@ -28,6 +30,104 @@ const clientsWithPortal = [
   },
 ];
 
+// Email to send to new user
+const buildWelcomeEmail = (newUser, password) => {
+  // Send welcome email to vendor with account creation instructions
+  const html = `
+        <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>New ${newUser.role} Account Created</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; margin: 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="20" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px;">
+            <tr>
+              <td align="center" style="padding-bottom: 0;">
+                <h2 style="color: #333;">Welcome to NFC</h2>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p style="color: #555;">
+                  Hello <strong>${newUser.name}</strong>,
+                </p>
+                <p style="color: #555;">
+                  A new ${newUser.role} account has been created for you. We're excited to have you on board!
+                </p>
+                <p style="color: #555;">
+                  To get started, please log in to your account using the credentials below:
+                </p>
+
+                <table cellpadding="10" cellspacing="0" border="0" style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 6px;">
+                  <tr>
+                    <td><strong>Email:</strong></td>
+                    <td>${newUser.email}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Temporary Password:</strong></td>
+                    <td><code>${password}</code></td>
+                  </tr>
+                </table>
+
+                <p style="color: #555; margin-top: 20px;">
+                  Please click the button below to log in and view your assigned work order. You'll be prompted to set a new password after your first login.
+                </p>
+
+                <p style="text-align: center; margin: 30px 0;">
+                  <a href="https://clients.nfcfm.com" style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 24px; border-radius: 4px; display: inline-block;">
+                    Log In to Your Account
+                  </a>
+                </p>
+
+                <p style="color: #555;">
+                  If you have any questions or need help accessing your account, feel free to reach out to our support team at <a href="mailto:support@[yourcompany].com">support@[yourcompany].com</a>.
+                </p>
+
+                <p style="color: #555;">Best regards,<br />The NFC Team</p>
+              </td>
+            </tr>
+          </table>
+
+          <p style="font-size: 12px; color: #999; margin-top: 20px;">
+            This message was sent by NFC.
+          </p>
+        </td>
+      </tr>
+    </table>
+    </body>
+    </html>
+    `;
+
+  return {
+    message: {
+      subject: "Welcome to National Facility Contractors - New Account Created",
+      body: {
+        contentType: "HTML",
+        content: html,
+      },
+      toRecipients: [
+        {
+          emailAddress: {
+            address: newUser.email,
+          },
+        },
+      ],
+      bccRecipients: [
+        {
+          emailAddress: {
+            address: "sarah.carter@evergreenbrands.com",
+          },
+        },
+      ],
+    },
+  };
+};
+
 const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
   const { user } = useAuth();
   const { isInternalAdmin } = useRole();
@@ -39,6 +139,8 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
     role: "",
     client: null,
     status: "Active",
+    password: "",
+    passwordChanged: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -87,6 +189,10 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
   };
 
   const handleChange = (field, value) => {
+    // Trim whitespace for text fields
+    if (typeof value === "string" && field !== "phone" && field !== "name") {
+      value = value.trim();
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (errors[field]) {
@@ -98,7 +204,7 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setTouched({
@@ -112,14 +218,23 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
     // If user is external admin, assign their client automatically
     if (!isInternalAdmin()) {
       formData.client = user.client;
+      formData.role = "Employee";
     }
 
     if (validateForm()) {
       // Prepare data for submission
       formData.dateCreated = new Date().toLocaleDateString();
       formData.createdBy = user.name;
+      formData.password = genPass();
 
+      // Save user to database
       onSubmit(formData);
+
+      // Notify new user via email
+      const emailContent = buildWelcomeEmail(formData, formData.password);
+      await sendEmailViaMicrosoft(emailContent);
+
+      // Reset form
       handleReset();
     }
   };
@@ -132,6 +247,8 @@ const CreateUserModal = ({ open, onClose, onSubmit, clients = [] }) => {
       role: "",
       client: null,
       status: "Active",
+      password: "",
+      passwordChanged: false,
     });
     setErrors({});
     setTouched({});
