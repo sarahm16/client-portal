@@ -25,24 +25,15 @@ function AfterImagesSection() {
 
   if (afterImages.length === 0) {
     return (
-      <CardComponent>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-          <Box
-            sx={{
-              bgcolor: "info.50",
-              p: 1.5,
-              borderRadius: 2,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Image color="info" />
-          </Box>
+      <CardComponent
+        title={
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Completion Photos
           </Typography>
-        </Box>
-
+        }
+        icon={<Image color="info" />}
+        collapsible={true}
+      >
         <Alert severity="info" icon={<Image />} sx={{ borderRadius: 2 }}>
           No completion photos available yet. Photos will appear here once the
           work is complete.
@@ -53,29 +44,15 @@ function AfterImagesSection() {
 
   return (
     <>
-      <CardComponent>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-          <Box
-            sx={{
-              bgcolor: "info.50",
-              p: 1.5,
-              borderRadius: 2,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Image color="info" />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Completion Photos
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {afterImages.length} photo{afterImages.length !== 1 ? "s" : ""}
-            </Typography>
-          </Box>
-        </Box>
-
+      <CardComponent
+        title={
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Completion Photos
+          </Typography>
+        }
+        icon={<Image color="info" />}
+        collapsible={true}
+      >
         <ImageList cols={2} gap={12}>
           {afterImages.map((image, index) => (
             <ImageListItem

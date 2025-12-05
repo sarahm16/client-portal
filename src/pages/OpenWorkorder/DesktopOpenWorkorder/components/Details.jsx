@@ -40,24 +40,15 @@ function WorkorderDetailsSection() {
   const statusConfig = getStatusConfig(workorder?.status);
 
   return (
-    <CardComponent>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-        <Box
-          sx={{
-            bgcolor: "primary.50",
-            p: 1.5,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Description color="primary" />
-        </Box>
+    <CardComponent
+      title={
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           Work Order Details
         </Typography>
-      </Box>
-
+      }
+      icon={<Description color="primary" />}
+      collapsible={true}
+    >
       <Stack direction="column" spacing={2.5}>
         <Box>
           <Typography

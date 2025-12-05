@@ -20,24 +20,15 @@ function PricingSection() {
   const { workorder } = useContext(WorkorderContext);
 
   return (
-    <CardComponent>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-        <Box
-          sx={{
-            bgcolor: "warning.50",
-            p: 1.5,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <AttachMoney color="warning" />
-        </Box>
+    <CardComponent
+      title={
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           Pricing & Scope
         </Typography>
-      </Box>
-
+      }
+      icon={<AttachMoney color="warning" />}
+      collapsible={true}
+    >
       <Box
         sx={{
           p: 3,
@@ -65,9 +56,7 @@ function PricingSection() {
             : "Not specified"}
         </Typography>
       </Box>
-
       <Divider sx={{ mb: 3 }} />
-
       <Box>
         <Typography
           variant="body2"

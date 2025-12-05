@@ -37,8 +37,16 @@ function SiteDetailsSection() {
   }, [workorder?.site?.id]);
 
   return (
-    <CardComponent>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+    <CardComponent
+      title={
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Site Information
+        </Typography>
+      }
+      collapsible={true}
+      icon={<LocationOn color="success" />}
+    >
+      {/*       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
         <Box
           sx={{
             bgcolor: "success.50",
@@ -48,12 +56,8 @@ function SiteDetailsSection() {
             alignItems: "center",
           }}
         >
-          <LocationOn color="success" />
         </Box>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Site Information
-        </Typography>
-      </Box>
+      </Box> */}
 
       <Stack direction="column" spacing={2}>
         <Box

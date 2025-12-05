@@ -67,24 +67,16 @@ function NotesSection() {
   };
 
   return (
-    <CardComponent sx={{ minHeight: 500 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-        <Box
-          sx={{
-            bgcolor: "secondary.50",
-            p: 1.5,
-            borderRadius: 2,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <StickyNote2 color="secondary" />
-        </Box>
+    <CardComponent
+      title={
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           Notes & Communication
         </Typography>
-      </Box>
-
+      }
+      icon={<StickyNote2 color="secondary" />}
+      collapsible={true}
+      sx={{ minHeight: 500 }}
+    >
       {/* New Note Form */}
       <Box
         sx={{
