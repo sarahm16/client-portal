@@ -8,13 +8,13 @@ import { useRole } from "../../auth/hooks/usePermissions";
 // Local components
 import DesktopWorkorders from "./DesktopWorkorders/DesktopWorkorders";
 import MobileWorkorders from "./MobileWorkorders/MobileWorkorders";
+import CreateWorkorderForm from "./Components/CreateWorkorderForm";
 
 // Local constants
 import { workorderStatuses } from "../../constants";
 
 // MUI
 import { useMediaQuery, useTheme } from "@mui/material";
-import CreateWorkorderForm from "./Components/CreateWorkorderForm";
 
 // Context
 export const WorkordersContext = createContext({
@@ -50,7 +50,7 @@ function Workorders() {
     const fetchWorkorders = async () => {
       const response = await getItemsFromAzure("workorders");
       const roleFilteredArray = userIsInternalAdmin
-        ? response.filter((wo) => !wo.financeStatus)
+        ? response.filter((wo) => wo.intake)
         : response.filter(
             (wo) => wo.client?.id === client?.id && !wo.financeStatus
           );
