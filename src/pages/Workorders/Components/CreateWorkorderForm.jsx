@@ -88,6 +88,8 @@ function CreateWorkorderForm() {
     activity: [],
     clientSubmitted: true,
     clientPrice: 0,
+    software: "Custom Portal",
+    intake: true,
   });
 
   useEffect(() => {
@@ -132,6 +134,7 @@ function CreateWorkorderForm() {
       clientSubmitted: true,
       clientPrice: 0,
       software: "Custom Portal",
+      intake: true,
     });
     setImages([]);
   };
