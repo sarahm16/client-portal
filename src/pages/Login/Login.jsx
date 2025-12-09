@@ -220,7 +220,11 @@ export default function LoginPage() {
         }
       );
 
+      console.log("Login response data:", loginResponse.data);
+
       const message = loginResponse.data?.message;
+
+      console.log("Login response message:", message);
 
       // Handle different response messages
       switch (message) {
@@ -233,8 +237,14 @@ export default function LoginPage() {
           break;
 
         case "Signed In":
+          sessionStorage.setItem(
+            "user",
+            JSON.stringify(loginResponse.data.user)
+          );
+
           // Successful login - redirect to work orders
           navigate("/workorders");
+
           break;
 
         case "Signed In, but password needs to be changed":

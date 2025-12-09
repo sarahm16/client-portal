@@ -21,24 +21,8 @@ export function AuthProvider({ children }) {
   }); */
   const [loading, setLoading] = useState(false);
 
-  const [rememberMe, setRememberMe] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      sessionStorage.setItem("user", JSON.stringify(user));
-      if (rememberMe) {
-        localStorage.setItem("user", JSON.stringify(user));
-      }
-    } else {
-      sessionStorage.removeItem("user");
-      localStorage.removeItem("user");
-    }
-  }, [user, rememberMe]);
-
   return (
-    <AuthContext.Provider
-      value={{ user, setUser, loading, setLoading, rememberMe, setRememberMe }}
-    >
+    <AuthContext.Provider value={{ user, setUser, loading, setLoading }}>
       {children}
     </AuthContext.Provider>
   );
