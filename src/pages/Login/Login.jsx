@@ -25,6 +25,7 @@ import {
 } from "@mui/icons-material";
 import ForgotPasswordModal from "./components/ForgotPasswordModal";
 import { azureClient } from "../../api/azureClient";
+import { useAuth } from "../../auth/hooks/AuthContext";
 
 // Change Password Modal Component
 function ChangePasswordModal({ open, onClose, email, onSuccess }) {
@@ -202,6 +203,8 @@ export default function LoginPage() {
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
 
+  const { user, setUser } = useAuth();
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -237,10 +240,7 @@ export default function LoginPage() {
           break;
 
         case "Signed In":
-          sessionStorage.setItem(
-            "user",
-            JSON.stringify(loginResponse.data.user)
-          );
+          setUser(loginResponse.data.user);
 
           // Successful login - redirect to work orders
           navigate("/workorders");

@@ -21,6 +21,16 @@ export function AuthProvider({ children }) {
   }); */
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      // Persist user to sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem("user");
+    }
+    // This effect could be used to fetch user data from an API if needed
+  }, []);
+
   return (
     <AuthContext.Provider value={{ user, setUser, loading, setLoading }}>
       {children}
