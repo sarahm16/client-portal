@@ -29,10 +29,18 @@ export function AuthProvider({ children }) {
       sessionStorage.removeItem("user");
     }
     // This effect could be used to fetch user data from an API if needed
-  }, []);
+  }, [user]);
+
+  const logout = () => {
+    setUser(null);
+    sessionStorage.removeItem("user");
+    localStorage.removeItem("user");
+  };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, setLoading }}>
+    <AuthContext.Provider
+      value={{ user, setUser, loading, setLoading, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

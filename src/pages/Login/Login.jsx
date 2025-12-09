@@ -248,6 +248,8 @@ export default function LoginPage() {
           break;
 
         case "Signed In, but password needs to be changed":
+          setUser(loginResponse.data.user);
+
           // Open change password modal
           setShowChangePasswordModal(true);
           break;

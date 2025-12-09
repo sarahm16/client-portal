@@ -28,8 +28,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 
-function Layout({ children, onLogout }) {
-  const { user } = useAuth();
+function Layout({ children }) {
+  const { user, logout } = useAuth();
   console.log("user in Layout:", user);
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,9 +63,8 @@ function Layout({ children, onLogout }) {
 
   const handleLogout = () => {
     handleProfileMenuClose();
-    if (onLogout) {
-      onLogout();
-    }
+    logout();
+    navigate("/login");
   };
 
   const handleNavigation = (path) => {
