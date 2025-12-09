@@ -52,7 +52,8 @@ function Workorders() {
       const roleFilteredArray = userIsInternalAdmin
         ? response.filter((wo) => wo.intake)
         : response.filter(
-            (wo) => wo.client?.id === client?.id && !wo.financeStatus
+            (wo) =>
+              wo.client?.id === client?.id && !wo.financeStatus && wo.intake
           );
       setWorkorders(roleFilteredArray);
       setUnfilteredWorkorders(roleFilteredArray);

@@ -39,11 +39,13 @@ function Layout({ children }) {
   const open = Boolean(anchorEl);
   const mobileMenuOpen = Boolean(mobileMenuAnchor);
 
-  // Determine permissions - adjust this logic based on your auth setup
-  const canAccessUsers = usePermissions([
+  const { hasAnyPermission } = usePermissions();
+  const canAccessUsers = hasAnyPermission([
     "manage_employees",
     "manage_external_admins",
-  ]).hasAnyPermission;
+  ]);
+
+  console.log("canAccessUsers in Layout:", canAccessUsers);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -264,7 +266,7 @@ function Layout({ children }) {
           </Typography>
         </Box>
         <Divider />
-        <MenuItem onClick={handleProfileMenuClose}>
+        {/*         <MenuItem onClick={handleProfileMenuClose}>
           <ListItemIcon>
             <AccountCircleIcon fontSize="small" />
           </ListItemIcon>
@@ -275,7 +277,7 @@ function Layout({ children }) {
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
           Settings
-        </MenuItem>
+        </MenuItem> */}
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
