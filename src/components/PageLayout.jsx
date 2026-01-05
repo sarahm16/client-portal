@@ -27,6 +27,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
+import LocationIcon from "@mui/icons-material/LocationOn";
 
 function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -193,6 +194,24 @@ function Layout({ children }) {
                 Users
               </Button>
             )}
+
+            <Button
+              startIcon={<LocationIcon />}
+              onClick={() => handleNavigation("/sites")}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                color: isActive("/sites") ? "primary.main" : "text.primary",
+                bgcolor: isActive("/sites") ? "primary.50" : "transparent",
+                "&:hover": {
+                  bgcolor: isActive("/sites") ? "primary.100" : "action.hover",
+                },
+                px: 2,
+                borderRadius: 2,
+              }}
+            >
+              Sites
+            </Button>
           </Box>
 
           {/* Mobile Menu Button */}

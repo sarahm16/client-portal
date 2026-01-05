@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 import { FileUploader } from "react-drag-drop-files";
 
 // Context
-import { WorkordersContext } from "../WorkOrders";
 import { useAuth } from "../../../auth/hooks/AuthContext";
 
 // MUI Components
@@ -35,13 +34,15 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 // API
-import { queryItemsFromAzure } from "../../../api/azureApi";
 import { saveImagesToBlobStorage } from "../../../api/storageApi";
+import { saveItemToAzure } from "../../../api/azureApi";
 
 // Constants
 import { trades } from "../../../constants";
+
+// Utilities
 import convertHeic from "../../../utilities/convertHeic";
-const validSiteStatuses = ["Active", "Sourcing", "Unassigned"];
+
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -57,23 +58,18 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-function CreateWorkorderForm() {
+function CreateWorkorderForm({ open, closeModal, selectedSite }) {
   // User Info
   const { user } = useAuth();
   const client = user?.client;
 
-  // Context
-  const workordersContext = useContext(WorkordersContext);
-  const { open, setOpen, handleSaveWorkorder } = workordersContext;
-
   // State
-  const [sites, setSites] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [formValues, setFormValues] = useState({
     client: client,
-    site: null,
+    site: selectedSite,
     service: "",
     priority: "P-3", // Default to medium priority
     status: "New",
@@ -92,33 +88,16 @@ function CreateWorkorderForm() {
     intake: true,
   });
 
-  useEffect(() => {
-    const fetchSites = async () => {
-      const query = `SELECT * FROM c WHERE c.client = "${
-        client.name
-      }" AND (${validSiteStatuses
-        .map((status) => `c.status = "${status}"`)
-        .join(" OR ")})`;
-      const response = await queryItemsFromAzure("sites", query);
-      console.log("Fetched sites for work order creation:", response);
-      setSites(response);
-    };
-
-    if (open && client) {
-      fetchSites();
-    }
-  }, [open, client]);
-
   const handleImageUpload = (files) => {
     setImages(Object.values(files));
   };
 
   const handleClose = () => {
-    setOpen(false);
+    closeModal();
     // Reset form
     setFormValues({
       client: client,
-      site: null,
+      site: selectedSite,
       service: "",
       priority: "P-3",
       status: "New",
@@ -139,6 +118,15 @@ function CreateWorkorderForm() {
     setImages([]);
   };
 
+  const handleSaveWorkorder = async (newWorkorder) => {
+    const createResponse = await saveItemToAzure(newWorkorder, "workorders");
+    if (createResponse) {
+      closeModal();
+    } else {
+      console.error("Failed to save workorder");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -153,9 +141,9 @@ function CreateWorkorderForm() {
         ...formValues,
         id: `NFC-${Math.floor(Math.random() * 100000)}`,
         site: {
-          name: formValues.site.store,
-          id: formValues.site.id,
-          state: formValues.site.state || "",
+          name: selectedSite.store,
+          id: selectedSite.id,
+          state: selectedSite.state || "",
         },
         activity: [
           {
@@ -208,7 +196,7 @@ function CreateWorkorderForm() {
               <Construction color="primary" /> Submit Work Order
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Submit a new work order request for your location
+              Submit a new work order request for {selectedSite.store}
             </Typography>
           </Box>
 
@@ -217,7 +205,7 @@ function CreateWorkorderForm() {
           {/* Form Fields */}
           <Grid container spacing={3}>
             {/* Site Selection */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            {/*           <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="caption" fontWeight={600} gutterBottom>
                 Select Location *
               </Typography>
@@ -245,7 +233,7 @@ function CreateWorkorderForm() {
                   option.id === value?.id
                 }
               />
-            </Grid>
+            </Grid> */}
 
             {/* Priority Selection */}
             <Grid size={{ xs: 12, md: 6 }}>

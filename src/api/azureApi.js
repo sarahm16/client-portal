@@ -86,6 +86,21 @@ export const queryItemsFromAzure = async (containerId, query) => {
   }
 };
 
+export const querySites = async (query) => {
+  console.log("Querying sites with query:", query);
+
+  try {
+    const response = await azureClient.post(
+      `/noSqlQuery?databaseId=procurement&containerId=sites`,
+      { query }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to query sites:", error);
+    throw new Error(error.response?.data?.message || "Failed to query sites");
+  }
+};
+
 /* export const saveAttachments = async (attachments) => {
     const attachmentUrls = await Promise.all(
       attachments.map(async (attachment) => {

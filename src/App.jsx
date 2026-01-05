@@ -6,6 +6,7 @@ import LoginPage from "./pages/Login/Login";
 import Users from "./pages/Users/Users";
 import Workorders from "./pages/WorkOrders/WorkOrders";
 import OpenWorkorder from "./pages/OpenWorkorder/OpenWorkorder";
+import Sites from "./pages/Sites/Sites";
 
 // local imports
 import { useAuth } from "./auth/hooks/AuthContext";
@@ -94,6 +95,16 @@ function App() {
           element={
             <ProtectedRoute permission="view_work-orders">
               <OpenWorkorder />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          exact
+          path="/sites"
+          element={
+            <ProtectedRoute permission="view_sites">
+              <Sites />
             </ProtectedRoute>
           }
         />

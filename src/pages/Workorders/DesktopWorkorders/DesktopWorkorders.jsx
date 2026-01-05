@@ -5,6 +5,7 @@ import {
   workorderTypes,
   workorderStatuses,
   mappedStatuses,
+  clientStatusArray,
 } from "../../../constants";
 import DesktopClientStatusFilter from "./DesktopClientStatusFilter";
 import DesktopStatusFilter from "./DesktopStatusFilter";

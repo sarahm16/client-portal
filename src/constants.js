@@ -47,6 +47,15 @@ export const clientStatusArray = {
   "Proposal Approved": "success",
 };
 
+export const siteStatusColors = {
+  "On Hold": "#FFCC00",
+  Unassigned: "#FFCC00",
+  Sourcing: "#FFCC00",
+  Active: "#58D68D",
+  Paused: "#F39C12",
+  Archived: "#A93226",
+};
+
 export const trades = [
   { id: 5, name: "Asphalt" },
   { id: 6, name: "Backflow Testing" },
