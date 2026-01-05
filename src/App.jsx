@@ -1,5 +1,6 @@
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import "./App.css";
+import "./global.css";
 
 // route imports
 import LoginPage from "./pages/Login/Login";
@@ -12,6 +13,21 @@ import Sites from "./pages/Sites/Sites";
 import { useAuth } from "./auth/hooks/AuthContext";
 import { usePermissions } from "./auth/hooks/usePermissions";
 import Layout from "./components/PageLayout";
+
+// MUI imports
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+const theme = createTheme({
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "capitalize",
+        },
+      },
+    },
+  },
+});
 
 // components
 function ProtectedRoute({ children, permission, permissions, requireAll }) {
@@ -57,7 +73,7 @@ function ProtectedRoute({ children, permission, permissions, requireAll }) {
 
 function App() {
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
@@ -109,7 +125,7 @@ function App() {
           }
         />
       </Routes>
-    </>
+    </ThemeProvider>
   );
 }
 

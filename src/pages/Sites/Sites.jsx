@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 //
 import { useAuth } from "../../auth/hooks/AuthContext";
-import { querySites } from "../../api/azureApi";
+import { querySites, saveItemToAzure } from "../../api/azureApi";
 import { siteStatusColors } from "../../constants";
 
 // MUI
@@ -16,6 +16,7 @@ import Container from "@mui/material/Container";
 // Data Grid
 import { DataGrid } from "@mui/x-data-grid";
 import CreateWorkorderForm from "./components/CreateWorkorderForm";
+import CreateSiteForm from "./components/CreateSiteForm";
 
 function Sites() {
   const { user } = useAuth();
@@ -52,6 +53,11 @@ function Sites() {
     {
       field: "client",
       headerName: "Client",
+      flex: 1,
+    },
+    {
+      field: "company",
+      headerName: "Company",
       flex: 1,
     },
     {
@@ -113,8 +119,23 @@ function Sites() {
     },
   ];
 
+  const handleSaveSite = async (newSite) => {
+    const savedSite = await saveItemToAzure(newSite, "sites");
+    if (savedSite) {
+      setSites((prevSites) => [savedSite, ...prevSites]);
+      setShowCreateModal(false);
+    }
+  };
+
   return (
     <>
+      {showCreateModal && (
+        <CreateSiteForm
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSave={(newSite) => handleSaveSite(newSite)}
+        />
+      )}
       {selectedSite && (
         <CreateWorkorderForm
           selectedSite={selectedSite}

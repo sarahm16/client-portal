@@ -165,6 +165,9 @@ function CreateWorkorderForm() {
           },
         ],
         images: imageArray,
+        createdBy: user?.name,
+        createdByEmail: user?.email,
+        dateCreated: new Date().getTime(),
       };
 
       // Save work order and update parent state
