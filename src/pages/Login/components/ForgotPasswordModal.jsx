@@ -1,5 +1,10 @@
 import { useState } from "react";
 
+// Functions
+import { sendEmailViaMicrosoft } from "../../../api/microsoftApi";
+import genPass from "../../../utilities/genPass";
+import { azureClient } from "../../../api/azureClient";
+
 // MUI Components
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -8,19 +13,64 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
+import { CircularProgress } from "@mui/material";
 
 function ForgotPasswordModal({ setShowForgotPassword }) {
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleForgotPassword = (e) => {
+  const handleForgotPassword = async (e) => {
+    console.log("Handling forgot password for:", forgotEmail);
     e.preventDefault();
+    setLoading(true);
+    const newPassword = genPass();
     // Password reset logic would go here
-    console.log("Password reset requested for:", forgotEmail);
-    setResetSent(true);
+    const resetResponse = await azureClient.post(
+      `/clientResetPassword?databaseId=procurement&containerId=users`,
+      {
+        newPassword,
+        email: forgotEmail,
+      }
+    );
+    console.log("Password reset response:", resetResponse);
+
+    // Send reset email
+    const emailParams = {
+      to: forgotEmail,
+      subject: "Password Reset Request",
+      body: `Your password has been reset. Your new temporary password is: ${newPassword}\n\nPlease log in and change your password immediately.`,
+    };
+
+    const emailData = {
+      message: {
+        subject: emailParams.subject,
+        body: {
+          contentType: "Text",
+          content: emailParams.body,
+        },
+        toRecipients: [
+          {
+            emailAddress: {
+              address: emailParams.to,
+            },
+          },
+        ],
+      },
+      saveToSentItems: "true",
+    };
+
+    try {
+      await sendEmailViaMicrosoft(emailData);
+      console.log("Reset email sent successfully");
+    } catch (error) {
+      console.error("Error sending reset email:", error);
+    }
+
     setTimeout(() => {
       setResetSent(false);
       setForgotEmail("");
+      setLoading(false);
     }, 3000);
   };
 
@@ -86,6 +136,8 @@ function ForgotPasswordModal({ setShowForgotPassword }) {
               variant="contained"
               size="large"
               sx={{ mb: 2, py: 1.5 }}
+              disabled={loading}
+              endIcon={loading ? <CircularProgress size={15} /> : null}
             >
               Send Reset Link
             </Button>

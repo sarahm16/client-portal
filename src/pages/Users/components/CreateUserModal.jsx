@@ -346,7 +346,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
             {isInternalAdmin() && formData?.role !== "Internal Admin" && (
               <Autocomplete
                 options={clientsWithPortal}
-                getOptionLabel={(option) => option.client}
+                getOptionLabel={(option) => option.name}
                 value={formData.client}
                 onChange={(e, newValue) => handleChange("client", newValue)}
                 onBlur={() => handleBlur("client")}

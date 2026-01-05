@@ -20,6 +20,20 @@ export const workorderStatuses = {
   "Proposal Approved": "success",
 };
 
+const matchedStatuses = {
+  New: "New",
+  Sourcing: "Accepted",
+  Sourced: "Accepted",
+  Scheduled: "Accepted",
+  "In Progress": "Accepted",
+  Completed: "Completed",
+  Reopened: "Reopened",
+  Cancelled: "Cancelled",
+  "Requires proposal": "Pending",
+  "Waiting approval": "Pending",
+  "Proposal Approved": "Approved",
+};
+
 export const trades = [
   { id: 5, name: "Asphalt" },
   { id: 6, name: "Backflow Testing" },
