@@ -20,18 +20,31 @@ export const workorderStatuses = {
   "Proposal Approved": "success",
 };
 
-const matchedStatuses = {
+export const mappedStatuses = {
   New: "New",
   Sourcing: "Accepted",
   Sourced: "Accepted",
-  Scheduled: "Accepted",
-  "In Progress": "Accepted",
+  Scheduled: "Scheduled",
+  "In Progress": "In Progress",
   Completed: "Completed",
   Reopened: "Reopened",
   Cancelled: "Cancelled",
-  "Requires proposal": "Pending",
-  "Waiting approval": "Pending",
-  "Proposal Approved": "Approved",
+  "Requires proposal": "Requires proposal",
+  "Waiting approval": "Waiting approval",
+  "Proposal Approved": "Proposal Approved",
+};
+
+export const clientStatusArray = {
+  New: "primary",
+  Accepted: "info",
+  Scheduled: "warning",
+  "In Progress": "warning",
+  Completed: "success",
+  Reopened: "error",
+  Cancelled: "error",
+  "Requires proposal": "warning",
+  "Waiting approval": "warning",
+  "Proposal Approved": "success",
 };
 
 export const trades = [

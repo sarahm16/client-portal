@@ -11,7 +11,11 @@ import MobileWorkorders from "./MobileWorkorders/MobileWorkorders";
 import CreateWorkorderForm from "./Components/CreateWorkorderForm";
 
 // Local constants
-import { workorderStatuses } from "../../constants";
+import {
+  mappedStatuses,
+  workorderStatuses,
+  clientStatusArray,
+} from "../../constants";
 
 // MUI
 import { useMediaQuery, useTheme } from "@mui/material";
@@ -38,12 +42,19 @@ function Workorders() {
   const { isInternalAdmin } = useRole();
   const userIsInternalAdmin = isInternalAdmin();
 
+  // Add this helper to get the appropriate status keys based on role
+  const getInitialStatusFilters = (role) => {
+    return role === "External Admin"
+      ? Object.keys(workorderStatuses)
+      : Object.keys(clientStatusArray);
+  };
+
   // State
   const [workorders, setWorkorders] = useState([]);
   const [unfilteredWorkorders, setUnfilteredWorkorders] = useState([]);
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState({
-    statuses: Object.keys(workorderStatuses),
+    statuses: getInitialStatusFilters(user?.role || "External Admin"),
   });
 
   useEffect(() => {
@@ -55,8 +66,17 @@ function Workorders() {
             (wo) =>
               wo.client?.id === client?.id && !wo.financeStatus && wo.intake
           );
-      setWorkorders(roleFilteredArray);
-      setUnfilteredWorkorders(roleFilteredArray);
+
+      const roleMappedStatusArray = roleFilteredArray.map((wo) => ({
+        ...wo,
+        status:
+          user?.role === "External Admin"
+            ? wo.status
+            : mappedStatuses[wo.status] || wo.status,
+      }));
+
+      setWorkorders(roleMappedStatusArray);
+      setUnfilteredWorkorders(roleMappedStatusArray);
     };
 
     fetchWorkorders();
