@@ -193,7 +193,7 @@ function InitialImagesSection() {
               }}
             >
               <LazyImage
-                src={image}
+                src={image?.split("?sp=")[0]} // Remove SAS token for display
                 alt={`Initial photo ${index + 1}`}
                 onClick={() => setSelectedImage(image)}
               />
