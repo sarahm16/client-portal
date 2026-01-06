@@ -32,6 +32,10 @@ const clientsWithPortal = [
     id: "026cdd2f-3874-436e-ab0f-ddf3aa67da26",
     name: "GPM Investments. ",
   },
+  {
+    name: "Test JW",
+    id: "22ad3841-22ae-44f2-9639-2b49961fbe71",
+  },
 ];
 
 const checkIfUserExists = (email, users) => {
@@ -191,9 +195,11 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
       newErrors.role = "Role is required";
     }
 
-    if (!formData.client) {
+    if (!formData.client && !isInternalAdmin()) {
       newErrors.client = "Client is required";
     }
+
+    console.log("Validation errors:", newErrors);
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -224,7 +230,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
       email: true,
       phone: true,
       role: true,
-      client: true,
+      client: !isInternalAdmin(),
     });
 
     // If user is external admin, assign their client automatically
