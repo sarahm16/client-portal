@@ -26,6 +26,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
 import { WorkordersContext } from "../WorkOrders";
+import { useNavigate } from "react-router-dom";
 
 // Mock data - replace with actual API call
 const mockWorkOrders = [
@@ -345,6 +346,7 @@ function WorkOrderTile({ workOrder, onClick }) {
 }
 
 function MobileWorkOrders() {
+  const navigate = useNavigate();
   const workordersContext = useContext(WorkordersContext);
   const { workorders, setOpen } = workordersContext;
   const [status, setStatus] = useState("All");
@@ -425,7 +427,7 @@ function MobileWorkOrders() {
 
   const handleWorkOrderClick = (workOrderId) => {
     console.log("Navigate to work order:", workOrderId);
-    // navigate(`/workorders/${workOrderId}`);
+    navigate(`/workorders/${workOrderId}`);
   };
 
   const handleCreateWorkOrder = () => {
