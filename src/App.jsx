@@ -16,6 +16,7 @@ import Layout from "./components/PageLayout";
 
 // MUI imports
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useEffect, useState } from "react";
 
 const theme = createTheme({
   components: {
@@ -72,8 +73,63 @@ function ProtectedRoute({ children, permission, permissions, requireAll }) {
         ] */
 
 function App() {
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+
+  useEffect(() => {
+    const currentVersion = import.meta.env.VITE_APP_VERSION;
+
+    const checkForUpdate = async () => {
+      try {
+        const res = await fetch("/version.json", { cache: "no-store" });
+        const data = await res.json();
+        if (data.version && data.version !== currentVersion) {
+          setUpdateAvailable(true);
+        }
+      } catch (error) {
+        console.error("Version check failed:", error);
+      }
+    };
+    const interval = setInterval(checkForUpdate, 5 * 60 * 1000);
+
+    checkForUpdate();
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
+      {updateAvailable && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              bottom: 20,
+              right: 20,
+              background: "#333",
+              color: "#fff",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              zIndex: 10000,
+            }}
+          >
+            <p style={{ margin: 0 }}>A new version is available.</p>
+            <button
+              style={{
+                marginTop: 8,
+                background: "#0d6efd",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4x",
+                padding: "6px 10px",
+                cursor: "pointer",
+              }}
+              onClick={() => window.location.reload()}
+            >
+              Refresh Now
+            </button>
+          </div>
+        </>
+      )}
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
