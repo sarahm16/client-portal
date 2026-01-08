@@ -86,19 +86,6 @@ function Sites() {
       flex: 0.7,
     },
     {
-      field: "status",
-      headerName: "Status",
-      flex: 0.5,
-      renderCell: (params) => (
-        <Chip
-          size="small"
-          label={params.row.status}
-          color={siteStatusColors[params.row.status]}
-          sx={{ textTransform: "capitalize" }}
-        />
-      ),
-    },
-    {
       field: "actions",
       headerName: "Actions",
       flex: 0.75,

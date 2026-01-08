@@ -144,6 +144,8 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
   const { user } = useAuth();
   const { isInternalAdmin } = useRole();
 
+  console.log("isInternalAdmin()", isInternalAdmin());
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
