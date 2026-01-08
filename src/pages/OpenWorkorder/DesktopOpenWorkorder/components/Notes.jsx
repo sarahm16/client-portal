@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import dayjs from "dayjs";
 
 // MUI Components
@@ -31,7 +31,11 @@ function NotesSection() {
   const [newNote, setNewNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const notes = workorder?.clientNotes || [];
+  const [notes, setNotes] = useState([]);
+
+  useEffect(() => {
+    setNotes(workorder?.clientNotes || []);
+  }, [workorder.clientNotes]);
 
   const handleSubmitNote = async () => {
     if (!newNote.trim()) return;
@@ -42,6 +46,7 @@ function NotesSection() {
         body: newNote,
         user: user?.name || "Client",
         date: new Date().getTime(),
+        company: "client",
       };
 
       const updates = {

@@ -8,6 +8,7 @@ import { getItemFromAzure, updateItemInAzure } from "../../api/azureApi";
 // Local components
 import DesktopOpenWorkorder from "./DesktopOpenWorkorder/DesktopOpenWorkorder";
 import MobileOpenworkorder from "./MobileOpenWorkorder/MobileOpenWorkorder";
+import { useIdle } from "react-use";
 
 // Context
 export const WorkorderContext = createContext({
@@ -20,6 +21,8 @@ function OpenWorkorder() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  const isIdle = useIdle(60000);
+
   // Get work order ID from URL params
   const params = useParams();
   console.log("OpenWorkorder params:", params);
@@ -30,13 +33,21 @@ function OpenWorkorder() {
   // state
   const [workorder, setWorkorder] = useState(null);
 
+  const fetchWorkorder = async () => {
+    const response = await getItemFromAzure("workorders", id);
+    setWorkorder(response);
+  };
+
   useEffect(() => {
-    const fetchWorkorder = async () => {
-      const response = await getItemFromAzure("workorders", id);
-      setWorkorder(response);
-    };
     fetchWorkorder();
   }, [id]);
+
+  useEffect(() => {
+    console.log("OpenWorkorder idle check", isIdle);
+    if (isIdle) {
+      fetchWorkorder();
+    }
+  }, [isIdle]);
 
   const handleUpdateWorkorder = async (updates) => {
     const updateResponse = await updateItemInAzure(updates, "workorders", id);
