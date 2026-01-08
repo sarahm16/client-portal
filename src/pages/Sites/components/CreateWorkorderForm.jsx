@@ -38,7 +38,7 @@ import { saveImagesToBlobStorage } from "../../../api/storageApi";
 import { saveItemToAzure } from "../../../api/azureApi";
 
 // Constants
-import { trades } from "../../../constants";
+import { priorityDueDates, trades } from "../../../constants";
 
 // Utilities
 import convertHeic from "../../../utilities/convertHeic";
@@ -171,6 +171,17 @@ function CreateWorkorderForm({ open, closeModal, selectedSite }) {
     }
   };
 
+  const handlePriorityChange = (e) => {
+    const dueDateOffset = priorityDueDates[e.target.value] || 7;
+    console.log("Due date offset for priority", e.target.value, dueDateOffset);
+    const newDueDate = dayjs().add(dueDateOffset, "day");
+    setFormValues((prev) => ({
+      ...prev,
+      priority: e.target.value,
+      dueDate: newDueDate,
+    }));
+  };
+
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={modalStyle}>
@@ -245,12 +256,7 @@ function CreateWorkorderForm({ open, closeModal, selectedSite }) {
               </Typography>
               <Select
                 value={formValues.priority}
-                onChange={(e) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    priority: e.target.value,
-                  }))
-                }
+                onChange={handlePriorityChange}
                 size="small"
                 fullWidth
                 required

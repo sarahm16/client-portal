@@ -103,3 +103,10 @@ export const trades = [
   { id: 39, name: "Welding" },
   { id: 45, name: "Other" },
 ];
+
+export const priorityDueDates = {
+  "P-1": 1,
+  "P-2": 3,
+  "P-3": 7,
+  "P-4": 14,
+};
