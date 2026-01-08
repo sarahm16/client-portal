@@ -188,21 +188,21 @@ function CreateSiteForm({ open, onClose, onSave }) {
           )}
 
           <TextField
-            label="Company"
+            label="Store Name"
             value={site.company}
             onChange={(e) => handleInputChange("company", e.target.value)}
             fullWidth
             required
-            placeholder="Enter company name"
+            placeholder="Eg: Starbucks, Walmart, etc."
           />
 
           <TextField
-            label="Store Name"
+            label="Site Number / Name"
             value={site.store}
             onChange={(e) => handleInputChange("store", e.target.value)}
             fullWidth
             required
-            placeholder="Enter store name or number"
+            placeholder="Enter site number or name"
           />
 
           <Box>

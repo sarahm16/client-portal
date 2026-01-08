@@ -52,6 +52,7 @@ import formatCurrency from "../../../utilities/formatCurrency";
 
 // API
 import { getItemFromAzure } from "../../../api/azureApi";
+import { useNavigate } from "react-router-dom";
 
 // ============================================
 // SUB-COMPONENTS
@@ -740,6 +741,7 @@ function NotesTabContent() {
 function MobileOpenWorkorder() {
   const { workorder } = useContext(WorkorderContext);
   const [activeTab, setActiveTab] = useState(0);
+  const navigate = useNavigate();
 
   if (!workorder) {
     return (
@@ -757,6 +759,10 @@ function MobileOpenWorkorder() {
       Cancelled: "error",
     };
     return colors[status] || "default";
+  };
+
+  const handleGoBack = () => {
+    navigate("/workorders");
   };
 
   return (
@@ -782,7 +788,7 @@ function MobileOpenWorkorder() {
         {/* Top Bar */}
         <Box sx={{ px: 2, py: 1.5 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-            <IconButton size="small" edge="start">
+            <IconButton onClick={handleGoBack} size="small" edge="start">
               <ArrowBack />
             </IconButton>
             <Typography variant="h6" fontWeight={700} sx={{ flex: 1 }} noWrap>

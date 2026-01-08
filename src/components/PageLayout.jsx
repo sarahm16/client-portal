@@ -348,6 +348,12 @@ function Layout({ children }) {
             Users
           </MenuItem>
         )}
+        <MenuItem onClick={() => handleNavigation("/sites")}>
+          <ListItemIcon>
+            <LocationIcon fontSize="small" />
+          </ListItemIcon>
+          Sites
+        </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
