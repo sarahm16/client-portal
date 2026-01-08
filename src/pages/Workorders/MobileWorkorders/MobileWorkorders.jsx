@@ -432,7 +432,7 @@ function MobileWorkOrders() {
 
   const handleCreateWorkOrder = () => {
     console.log("Open create work order modal");
-    // setOpen(true);
+    setOpen(true);
   };
 
   return (
