@@ -70,11 +70,13 @@ function CreateWorkorderForm() {
   const [sites, setSites] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [otherService, setOtherService] = useState("");
 
   const [formValues, setFormValues] = useState({
     client: client,
     site: null,
     service: "",
+    otherService: "",
     priority: "P-3", // Default to medium priority
     status: "New",
     createdBy: user,
@@ -120,6 +122,7 @@ function CreateWorkorderForm() {
       client: client,
       site: null,
       service: "",
+      otherService: "",
       priority: "P-3",
       status: "New",
       createdBy: user,
@@ -151,6 +154,10 @@ function CreateWorkorderForm() {
 
       const objToCreate = {
         ...formValues,
+        service:
+          formValues.service === "Other"
+            ? formValues.otherService
+            : formValues.service,
         id: `NFC-${Math.floor(Math.random() * 100000)}`,
         site: {
           name: formValues.site.store,
@@ -310,6 +317,22 @@ function CreateWorkorderForm() {
                   }));
                 }}
               />
+              {formValues.service === "Other" && (
+                <TextField
+                  sx={{ mt: 1 }}
+                  size="small"
+                  fullWidth
+                  label="Please specify the service"
+                  value={formValues.otherService}
+                  onChange={(e) =>
+                    setFormValues((prev) => ({
+                      ...prev,
+                      otherService: e.target.value,
+                    }))
+                  }
+                  required={formValues.service === "Other"}
+                />
+              )}
             </Grid>
 
             {/* Budget/Client Price */}
