@@ -27,7 +27,9 @@ function DesktopWorkorders() {
   const { workorders, setOpen } = workordersContext;
 
   const { user } = useAuth();
-  const role = user?.role || "External Admin";
+  console.log("user", user);
+  /*   const role = "External Admin";
+   */ const role = user?.role || "External Admin";
 
   const columns = [
     // Identifiers and general type
@@ -89,12 +91,12 @@ function DesktopWorkorders() {
       width: 150,
       renderCell: (params) => {
         const mappedStatus =
-          role === "External Admin"
+          role === "Internal Admin"
             ? params.row.status
             : mappedStatuses[params.row.status] || params.row.status;
 
         const color =
-          role === "External Admin"
+          role === "Internal Admin"
             ? workorderStatuses[mappedStatus]
             : clientStatusArray[mappedStatus];
         return (
@@ -140,7 +142,7 @@ function DesktopWorkorders() {
           pb: 1,
         }}
       >
-        {role === "External Admin" ? (
+        {role === "Internal Admin" ? (
           <DesktopStatusFilter />
         ) : (
           <DesktopClientStatusFilter />

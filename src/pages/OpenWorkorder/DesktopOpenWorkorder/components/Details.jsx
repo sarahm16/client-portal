@@ -19,6 +19,7 @@ import { WorkorderContext } from "../../OpenWorkorder";
 // Local components
 import CardComponent from "./CardComponent";
 import StackComp from "./StackComponent";
+import Reopen from "./Reopen";
 
 // Work Order Details Component
 function WorkorderDetailsSection() {
@@ -57,7 +58,7 @@ function WorkorderDetailsSection() {
           >
             Status
           </Typography>
-          <Box sx={{ mt: 1 }}>
+          <Box sx={{ mt: 1, display: "flex", gap: 2 }}>
             <Chip
               icon={statusConfig.icon}
               label={workorder?.status || "Unknown"}
@@ -65,6 +66,8 @@ function WorkorderDetailsSection() {
               size="medium"
               sx={{ fontWeight: 600, px: 1 }}
             />
+
+            {workorder?.status === "Completed" && <Reopen />}
           </Box>
         </Box>
 
