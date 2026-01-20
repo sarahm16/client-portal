@@ -5,12 +5,14 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
+import Alert from "@mui/material/Alert";
 import Description from "@mui/icons-material/Description";
 import Schedule from "@mui/icons-material/Schedule";
 import BuildCircle from "@mui/icons-material/BuildCircle";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import Person from "@mui/icons-material/Person";
+import Info from "@mui/icons-material/Info";
 import dayjs from "dayjs";
 
 // Context
@@ -20,6 +22,7 @@ import { WorkorderContext } from "../../OpenWorkorder";
 import CardComponent from "./CardComponent";
 import StackComp from "./StackComponent";
 import Reopen from "./Reopen";
+import CancelWorkorder from "./Cancel";
 
 // Work Order Details Component
 function WorkorderDetailsSection() {
@@ -58,7 +61,7 @@ function WorkorderDetailsSection() {
           >
             Status
           </Typography>
-          <Box sx={{ mt: 1, display: "flex", gap: 2 }}>
+          <Box sx={{ mt: 1, display: "flex", gap: 2, flexWrap: "wrap" }}>
             <Chip
               icon={statusConfig.icon}
               label={workorder?.status || "Unknown"}
@@ -68,8 +71,55 @@ function WorkorderDetailsSection() {
             />
 
             {workorder?.status === "Completed" && <Reopen />}
+            {workorder?.status !== "Completed" &&
+              workorder?.status !== "Cancelled" && <CancelWorkorder />}
           </Box>
         </Box>
+
+        {/* Show Cancellation Reason */}
+        {workorder?.status === "Cancelled" &&
+          workorder?.cancelDetails?.reason && (
+            <Alert severity="error" icon={<Info />}>
+              <Typography variant="caption" fontWeight={600} display="block">
+                Cancellation Reason
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                {workorder.cancelDetails?.reason}
+              </Typography>
+              {workorder?.cancelDetails?.date && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  Cancelled on{" "}
+                  {dayjs(workorder.cancelDetails.date).format("MMM D, YYYY")}
+                </Typography>
+              )}
+            </Alert>
+          )}
+
+        {/* Show Reopen Reason */}
+        {workorder?.status === "Reopened" && workorder?.reopenDetails && (
+          <Alert severity="info" icon={<Info />}>
+            <Typography variant="caption" fontWeight={600} display="block">
+              Reopened Reason
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {workorder.reopenDetails?.reason}
+            </Typography>
+            {workorder?.reopenDetails?.date && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: "block" }}
+              >
+                Reopened on{" "}
+                {dayjs(workorder.reopenDetails.date).format("MMM D, YYYY")}
+              </Typography>
+            )}
+          </Alert>
+        )}
 
         {workorder?.priority && (
           <Box
