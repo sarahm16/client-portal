@@ -6,6 +6,7 @@ import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
@@ -17,6 +18,7 @@ import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import Person from "@mui/icons-material/Person";
 import Info from "@mui/icons-material/Info";
 import Edit from "@mui/icons-material/Edit";
+import Cancel from "@mui/icons-material/Cancel";
 import dayjs from "dayjs";
 
 // Context
@@ -34,6 +36,27 @@ const priorityDueDates = {
   "P-2": 3,
   "P-3": 7,
   "P-4": 14,
+};
+
+// Status mapping (internal key -> client-facing value)
+const mappedStatuses = {
+  New: "New",
+  Sourcing: "Accepted",
+  Sourced: "Accepted",
+  Scheduled: "Scheduled",
+  "In Progress": "In Progress",
+  Completed: "Completed",
+  Reopened: "Reopened",
+  Cancelled: "Cancelled",
+  "Requires proposal": "Requires proposal",
+  "Waiting approval": "Waiting approval",
+  "Proposal Approved": "Proposal Approved",
+  "Proposal Denied": "Proposal Denied",
+};
+
+// Get the client-facing value for an internal status key
+const getStatusDisplayValue = (key) => {
+  return mappedStatuses[key] || key;
 };
 
 // Work Order Details Component
@@ -70,6 +93,12 @@ function WorkorderDetailsSection() {
     setIsEditingPriority(false);
   };
 
+  const handleProposalDecision = (approved) => {
+    handleUpdateWorkorder({
+      status: approved ? "Proposal Approved" : "Proposal Denied",
+    });
+  };
+
   const statusConfig = getStatusConfig(workorder?.status);
   const isEditable =
     workorder?.status !== "Completed" && workorder?.status !== "Cancelled";
@@ -92,10 +121,18 @@ function WorkorderDetailsSection() {
           >
             Status
           </Typography>
-          <Box sx={{ mt: 1, display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              mt: 1,
+              display: "flex",
+              gap: 2,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
             <Chip
               icon={statusConfig.icon}
-              label={workorder?.status || "Unknown"}
+              label={getStatusDisplayValue(workorder?.status) || "Unknown"}
               color={statusConfig.color}
               size="medium"
               sx={{ fontWeight: 600, px: 1 }}
@@ -103,8 +140,31 @@ function WorkorderDetailsSection() {
 
             {workorder?.status === "Completed" && <Reopen />}
             {workorder?.status !== "Completed" &&
-              workorder?.status !== "Cancelled" && <CancelWorkorder />}
+              workorder?.status !== "Cancelled" &&
+              workorder?.status !== "Waiting approval" && <CancelWorkorder />}
           </Box>
+
+          {/* Proposal Approval Actions */}
+          {workorder?.status === "Waiting approval" && (
+            <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CheckCircle />}
+                onClick={() => handleProposalDecision(true)}
+              >
+                Approve Proposal
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<Cancel />}
+                onClick={() => handleProposalDecision(false)}
+              >
+                Deny Proposal
+              </Button>
+            </Box>
+          )}
         </Box>
 
         {/* Show Cancellation Reason */}
