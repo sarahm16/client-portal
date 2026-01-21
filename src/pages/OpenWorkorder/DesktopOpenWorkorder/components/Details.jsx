@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -6,6 +6,9 @@ import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import Alert from "@mui/material/Alert";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import IconButton from "@mui/material/IconButton";
 import Description from "@mui/icons-material/Description";
 import Schedule from "@mui/icons-material/Schedule";
 import BuildCircle from "@mui/icons-material/BuildCircle";
@@ -13,6 +16,7 @@ import CheckCircle from "@mui/icons-material/CheckCircle";
 import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import Person from "@mui/icons-material/Person";
 import Info from "@mui/icons-material/Info";
+import Edit from "@mui/icons-material/Edit";
 import dayjs from "dayjs";
 
 // Context
@@ -24,9 +28,18 @@ import StackComp from "./StackComponent";
 import Reopen from "./Reopen";
 import CancelWorkorder from "./Cancel";
 
+// Priority configuration with due dates in days
+const priorityDueDates = {
+  "P-1": 1,
+  "P-2": 3,
+  "P-3": 7,
+  "P-4": 14,
+};
+
 // Work Order Details Component
 function WorkorderDetailsSection() {
-  const { workorder } = useContext(WorkorderContext);
+  const { workorder, handleUpdateWorkorder } = useContext(WorkorderContext);
+  const [isEditingPriority, setIsEditingPriority] = useState(false);
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -41,7 +54,25 @@ function WorkorderDetailsSection() {
     return configs[status] || { color: "default", icon: null };
   };
 
+  const handlePriorityChange = (event) => {
+    const newPriority = event.target.value;
+    const daysToAdd = priorityDueDates[newPriority];
+    const createdDate = workorder?.createdDate
+      ? dayjs(workorder.createdDate)
+      : dayjs();
+    const newDueDate = createdDate.add(daysToAdd, "day");
+
+    handleUpdateWorkorder({
+      priority: newPriority,
+      dueDate: newDueDate.toISOString(),
+    });
+
+    setIsEditingPriority(false);
+  };
+
   const statusConfig = getStatusConfig(workorder?.status);
+  const isEditable =
+    workorder?.status !== "Completed" && workorder?.status !== "Cancelled";
 
   return (
     <CardComponent
@@ -131,12 +162,59 @@ function WorkorderDetailsSection() {
               borderColor: "warning.200",
             }}
           >
-            <Typography variant="caption" fontWeight={600} color="warning.dark">
-              Priority Level
-            </Typography>
-            <Typography variant="h6" fontWeight={700} color="warning.dark">
-              {workorder.priority}
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mb: 0.5,
+              }}
+            >
+              <Typography
+                variant="caption"
+                fontWeight={600}
+                color="warning.dark"
+              >
+                Priority Level
+              </Typography>
+              {isEditable && !isEditingPriority && (
+                <IconButton
+                  size="small"
+                  onClick={() => setIsEditingPriority(true)}
+                  sx={{ color: "warning.dark" }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
+
+            {isEditingPriority ? (
+              <Select
+                value={workorder.priority}
+                onChange={handlePriorityChange}
+                size="small"
+                fullWidth
+                autoFocus
+                onBlur={() => setIsEditingPriority(false)}
+                sx={{
+                  bgcolor: "background.paper",
+                  fontWeight: 700,
+                  "& .MuiSelect-select": {
+                    py: 1,
+                  },
+                }}
+              >
+                {Object.entries(priorityDueDates).map(([priority, days]) => (
+                  <MenuItem key={priority} value={priority}>
+                    {priority} ({days} {days === 1 ? "day" : "days"})
+                  </MenuItem>
+                ))}
+              </Select>
+            ) : (
+              <Typography variant="h6" fontWeight={700} color="warning.dark">
+                {workorder.priority}
+              </Typography>
+            )}
           </Box>
         )}
 
