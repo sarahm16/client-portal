@@ -184,6 +184,19 @@ function NotesSection() {
                   >
                     {note.body}
                   </Typography>
+
+                  {note.attachment && (
+                    <Box sx={{ mt: 2 }}>
+                      <a
+                        href={note.attachment}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: "none", color: "#1976d2" }}
+                      >
+                        View Attachment
+                      </a>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             ))}
