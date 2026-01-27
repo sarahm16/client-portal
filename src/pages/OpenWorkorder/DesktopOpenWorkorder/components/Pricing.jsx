@@ -48,7 +48,7 @@ function PricingSection() {
   const [approveOpen, setApproveOpen] = useState(false);
   const [denyOpen, setDenyOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [denyReason, setDenyReason] = useState("");
+  const [clientDenyReason, setClientDenyReason] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleApprove = async () => {
@@ -104,19 +104,19 @@ function PricingSection() {
               status: "Denied",
               clientDeniedDate: new Date().getTime(),
               clientResponse: "Denied",
-              clientDenyReason: denyReason,
+              clientDenyReason: clientDenyReason,
             }
           : r,
       );
 
-      await updateWorkorder({
+      await handleUpdateWorkorder({
         nteRequests: updatedRequests,
         activity: [
           {
             date: new Date().getTime(),
             user: "Client",
             action: `Client denied NTE increase request for ${formatCurrency(
-              selectedRequest.clientAmount,
+              Number(selectedRequest.clientAmount),
             )}`,
           },
           ...activity,
@@ -127,7 +127,7 @@ function PricingSection() {
 
       setDenyOpen(false);
       setSelectedRequest(null);
-      setDenyReason("");
+      setClientDenyReason("");
     } catch (error) {
       console.error("Error denying NTE:", error);
     } finally {
@@ -280,7 +280,7 @@ function PricingSection() {
         onClose={() => {
           setDenyOpen(false);
           setSelectedRequest(null);
-          setDenyReason("");
+          setClientDenyReason("");
         }}
         maxWidth="sm"
         fullWidth
@@ -341,8 +341,8 @@ function PricingSection() {
             rows={4}
             label="Reason for Denial"
             placeholder="Please explain why you are denying this request..."
-            value={denyReason}
-            onChange={(e) => setDenyReason(e.target.value)}
+            value={clientDenyReason}
+            onChange={(e) => setClientDenyReason(e.target.value)}
             variant="outlined"
             required
           />
@@ -353,7 +353,7 @@ function PricingSection() {
             onClick={() => {
               setDenyOpen(false);
               setSelectedRequest(null);
-              setDenyReason("");
+              setClientDenyReason("");
             }}
             variant="outlined"
             color="inherit"
@@ -365,7 +365,7 @@ function PricingSection() {
             onClick={handleDeny}
             variant="contained"
             color="error"
-            disabled={isProcessing || !denyReason.trim()}
+            disabled={isProcessing || !clientDenyReason.trim()}
             startIcon={<CancelIcon />}
           >
             {isProcessing ? "Processing..." : "Deny Request"}
