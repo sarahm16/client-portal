@@ -5,7 +5,7 @@ import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 
-import { workorderStatuses, clientStatusArray } from "../../../constants";
+import { mappedClientStatuses } from "../../../constants";
 import { WorkordersContext } from "../WorkOrders";
 
 function DesktopClientStatusFilter() {
@@ -24,7 +24,7 @@ function DesktopClientStatusFilter() {
           onClick={() =>
             handleFilterChange({
               key: "statuses",
-              value: Object.keys(clientStatusArray), // Changed from workorderStatuses
+              value: Object.keys(mappedClientStatuses), // Changed from workorderStatuses
             })
           }
         />
@@ -36,7 +36,7 @@ function DesktopClientStatusFilter() {
 
         <Divider orientation="vertical" flexItem />
 
-        {Object.keys(clientStatusArray).map((status) => (
+        {Object.keys(mappedClientStatuses).map((status) => (
           <Chip
             size="small"
             variant={
@@ -51,10 +51,10 @@ function DesktopClientStatusFilter() {
                   : [...filters.statuses, status],
               })
             }
-            color={clientStatusArray[status]}
+            color={mappedClientStatuses[status].color}
             sx={{
               bgcolor: filters.statuses.includes(status)
-                ? clientStatusArray[status]
+                ? mappedClientStatuses[status].color
                 : "white",
             }}
             label={status}

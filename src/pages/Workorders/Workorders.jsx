@@ -11,11 +11,7 @@ import MobileWorkorders from "./MobileWorkorders/MobileWorkorders";
 import CreateWorkorderForm from "./Components/CreateWorkorderForm";
 
 // Local constants
-import {
-  mappedStatuses,
-  workorderStatuses,
-  clientStatusArray,
-} from "../../constants";
+import { mappedClientStatuses } from "../../constants";
 
 // MUI
 import { useMediaQuery, useTheme } from "@mui/material";
@@ -42,19 +38,12 @@ function Workorders() {
   const { isInternalAdmin } = useRole();
   const userIsInternalAdmin = isInternalAdmin();
 
-  // Add this helper to get the appropriate status keys based on role
-  const getInitialStatusFilters = (role) => {
-    return role === "External Admin"
-      ? Object.keys(workorderStatuses)
-      : Object.keys(clientStatusArray);
-  };
-
   // State
   const [workorders, setWorkorders] = useState([]);
   const [unfilteredWorkorders, setUnfilteredWorkorders] = useState([]);
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState({
-    statuses: getInitialStatusFilters(user?.role || "External Admin"),
+    statuses: Object.keys(mappedClientStatuses),
   });
 
   useEffect(() => {
@@ -64,26 +53,23 @@ function Workorders() {
         ? response.filter((wo) => wo.intake)
         : response.filter(
             (wo) =>
-              wo.client?.id === client?.id && !wo.financeStatus && wo.intake
+              wo.client?.id === client?.id && !wo.financeStatus && wo.intake,
           );
 
-      const roleMappedStatusArray = roleFilteredArray.map((wo) => ({
-        ...wo,
-        status:
-          user?.role === "External Admin"
-            ? wo.status
-            : mappedStatuses[wo.status] || wo.status,
-      }));
-
-      setWorkorders(roleMappedStatusArray);
-      setUnfilteredWorkorders(roleMappedStatusArray);
+      setWorkorders(roleFilteredArray);
+      setUnfilteredWorkorders(roleFilteredArray);
     };
 
     fetchWorkorders();
   }, [client, user, userIsInternalAdmin]);
 
-  const matchesStatus = (workorder) =>
-    filters.statuses.includes(workorder?.status);
+  const matchesStatus = (workorder) => {
+    const clientStatus = Object.keys(mappedClientStatuses)?.find((st) =>
+      mappedClientStatuses[st].opsStatuses?.includes(workorder.status),
+    );
+
+    return filters.statuses.includes(clientStatus);
+  };
 
   const handleFilterChange = ({ key, value }) => {
     setFilters((prev) => ({
@@ -94,7 +80,7 @@ function Workorders() {
 
   useEffect(() => {
     const filtered = unfilteredWorkorders.filter((workorder) =>
-      matchesStatus(workorder)
+      matchesStatus(workorder),
     );
     setWorkorders(filtered);
   }, [filters]);

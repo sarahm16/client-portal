@@ -18,20 +18,69 @@ export const workorderStatuses = {
   "Requires proposal": "warning",
   "Waiting approval": "warning",
   "Proposal Approved": "success",
+  "Proposal Denied": "error",
 };
 
-export const mappedStatuses = {
+export const mappedClientStatuses = {
+  New: {
+    color: "info",
+    opsStatuses: ["New"],
+  },
+  Accepted: {
+    color: "success",
+    opsStatuses: ["Sourcing", "Sourced"],
+  },
+  Scheduled: {
+    color: "warning",
+    opsStatuses: ["Scheduled"],
+  },
+  "In Progress": {
+    color: "warning",
+    opsStatuses: ["In Progress"],
+  },
+  Completed: {
+    color: "success",
+    opsStatuses: ["Completed"],
+  },
+  Reopened: {
+    color: "error",
+    opsStatuses: ["Reopened"],
+  },
+  Cancelled: {
+    color: "error",
+    opsStatuses: ["Cancelled"],
+  },
+  "Requires proposal": {
+    color: "warning",
+    opsStatuses: ["Requires proposal"],
+  },
+  "Waiting approval": {
+    color: "warning",
+    opsStatuses: ["Waiting approval"],
+  },
+  "Proposal Approved": {
+    color: "success",
+    opsStatuses: ["Proposal Approved"],
+  },
+  "Proposal Denied": {
+    color: "error",
+    opsStatuses: ["Proposal Denied"],
+  },
+};
+
+export const mappedOpsStatuses = {
   New: "New",
   Sourcing: "Accepted",
   Sourced: "Accepted",
   Scheduled: "Scheduled",
   "In Progress": "In Progress",
-  Completed: "Completed",
-  Reopened: "Reopened",
-  Cancelled: "Cancelled",
   "Requires proposal": "Requires proposal",
   "Waiting approval": "Waiting approval",
   "Proposal Approved": "Proposal Approved",
+  "Proposal Denied": "Proposal Denied",
+  Completed: "Completed",
+  Reopened: "Reopened",
+  Cancelled: "Cancelled",
 };
 
 export const clientStatusArray = {
@@ -45,6 +94,7 @@ export const clientStatusArray = {
   "Requires proposal": "warning",
   "Waiting approval": "warning",
   "Proposal Approved": "success",
+  "Proposal Denied": "error",
 };
 
 export const siteStatusColors = {

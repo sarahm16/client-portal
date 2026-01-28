@@ -1,14 +1,8 @@
 import React, { useContext } from "react";
 
 // local imports
-import {
-  workorderTypes,
-  workorderStatuses,
-  mappedStatuses,
-  clientStatusArray,
-} from "../../../constants";
+import { workorderTypes, mappedClientStatuses } from "../../../constants";
 import DesktopClientStatusFilter from "./DesktopClientStatusFilter";
-import DesktopStatusFilter from "./DesktopStatusFilter";
 
 // MUI imports
 import { DataGrid } from "@mui/x-data-grid";
@@ -90,15 +84,11 @@ function DesktopWorkorders() {
       headerName: "Status",
       width: 150,
       renderCell: (params) => {
-        const mappedStatus =
-          role === "Internal Admin"
-            ? params.row.status
-            : mappedStatuses[params.row.status] || params.row.status;
-
-        const color =
-          role === "Internal Admin"
-            ? workorderStatuses[mappedStatus]
-            : clientStatusArray[mappedStatus];
+        const clientStatus = Object.keys(mappedClientStatuses)?.find((st) =>
+          mappedClientStatuses[st].opsStatuses?.includes(params.row.status),
+        );
+        const mappedStatus = clientStatus || params.row.status;
+        const color = mappedClientStatuses[mappedStatus]?.color || "default";
         return (
           <Chip size="small" label={mappedStatus} color={color || "default"} />
         );
@@ -142,11 +132,7 @@ function DesktopWorkorders() {
           pb: 1,
         }}
       >
-        {role === "Internal Admin" ? (
-          <DesktopStatusFilter />
-        ) : (
-          <DesktopClientStatusFilter />
-        )}
+        <DesktopClientStatusFilter />
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
             variant="contained"
