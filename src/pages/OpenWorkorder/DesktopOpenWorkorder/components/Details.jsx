@@ -29,6 +29,7 @@ import CardComponent from "./CardComponent";
 import StackComp from "./StackComponent";
 import Reopen from "./Reopen";
 import CancelWorkorder from "./Cancel";
+import { mappedClientStatuses } from "../../../../constants";
 
 // Priority configuration with due dates in days
 const priorityDueDates = {
@@ -38,33 +39,27 @@ const priorityDueDates = {
   "P-4": 14,
 };
 
-// Status mapping (internal key -> client-facing value)
-const mappedStatuses = {
-  New: "New",
-  Sourcing: "Accepted",
-  Sourced: "Accepted",
-  Scheduled: "Scheduled",
-  "In Progress": "In Progress",
-  Completed: "Completed",
-  Reopened: "Reopened",
-  Cancelled: "Cancelled",
-  "Requires proposal": "Requires proposal",
-  "Waiting approval": "Waiting approval",
-  "Proposal Approved": "Proposal Approved",
-  "Proposal Denied": "Proposal Denied",
-};
-
-// Get the client-facing value for an internal status key
-const getStatusDisplayValue = (key) => {
-  return mappedStatuses[key] || key;
-};
+const availableStatuses = [
+  "Requires proposal",
+  "Proposal Approved",
+  "Proposal Denied",
+];
 
 // Work Order Details Component
 function WorkorderDetailsSection() {
   const { workorder, handleUpdateWorkorder } = useContext(WorkorderContext);
   const [isEditingPriority, setIsEditingPriority] = useState(false);
 
-  const getStatusConfig = (status) => {
+  const clientStatus = Object.keys(mappedClientStatuses)?.find((st) =>
+    mappedClientStatuses[st].opsStatuses?.includes(workorder?.status),
+  );
+  const mappedStatus = clientStatus || workorder?.status;
+
+  const priorityIsEditable = ["New", "Accepted", "Requires proposal"].includes(
+    mappedStatus,
+  );
+
+  /*   const getStatusConfig = (status) => {
     const configs = {
       New: { color: "info", icon: <Schedule fontSize="small" /> },
       "In Progress": {
@@ -75,7 +70,7 @@ function WorkorderDetailsSection() {
       Cancelled: { color: "error", icon: null },
     };
     return configs[status] || { color: "default", icon: null };
-  };
+  }; */
 
   const handlePriorityChange = (event) => {
     const newPriority = event.target.value;
@@ -99,10 +94,8 @@ function WorkorderDetailsSection() {
     });
   };
 
-  const statusConfig = getStatusConfig(workorder?.status);
-  const isEditable =
-    workorder?.status !== "Completed" && workorder?.status !== "Cancelled";
-
+  /*   const statusConfig = getStatusConfig(workorder?.status);
+   */
   return (
     <CardComponent
       title={
@@ -131,21 +124,21 @@ function WorkorderDetailsSection() {
             }}
           >
             <Chip
-              icon={statusConfig.icon}
-              label={getStatusDisplayValue(workorder?.status) || "Unknown"}
-              color={statusConfig.color}
+              /*               icon={statusConfig.icon}
+               */ label={mappedStatus}
+              color={mappedClientStatuses[mappedStatus]?.color || "default"}
               size="medium"
               sx={{ fontWeight: 600, px: 1 }}
             />
 
-            {workorder?.status === "Completed" && <Reopen />}
-            {workorder?.status !== "Completed" &&
-              workorder?.status !== "Cancelled" &&
-              workorder?.status !== "Waiting approval" && <CancelWorkorder />}
+            {mappedStatus === "Completed" && <Reopen />}
+            {mappedStatus !== "Completed" &&
+              mappedStatus !== "Cancelled" &&
+              mappedStatus !== "Waiting approval" && <CancelWorkorder />}
           </Box>
 
           {/* Proposal Approval Actions */}
-          {workorder?.status === "Waiting approval" && (
+          {mappedStatus === "Waiting approval" && (
             <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
               <Button
                 variant="contained"
@@ -168,30 +161,29 @@ function WorkorderDetailsSection() {
         </Box>
 
         {/* Show Cancellation Reason */}
-        {workorder?.status === "Cancelled" &&
-          workorder?.cancelDetails?.reason && (
-            <Alert severity="error" icon={<Info />}>
-              <Typography variant="caption" fontWeight={600} display="block">
-                Cancellation Reason
+        {mappedStatus === "Cancelled" && workorder?.cancelDetails?.reason && (
+          <Alert severity="error" icon={<Info />}>
+            <Typography variant="caption" fontWeight={600} display="block">
+              Cancellation Reason
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {workorder.cancelDetails?.reason}
+            </Typography>
+            {workorder?.cancelDetails?.date && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: "block" }}
+              >
+                Cancelled on{" "}
+                {dayjs(workorder.cancelDetails.date).format("MMM D, YYYY")}
               </Typography>
-              <Typography variant="body2" sx={{ mt: 0.5 }}>
-                {workorder.cancelDetails?.reason}
-              </Typography>
-              {workorder?.cancelDetails?.date && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 1, display: "block" }}
-                >
-                  Cancelled on{" "}
-                  {dayjs(workorder.cancelDetails.date).format("MMM D, YYYY")}
-                </Typography>
-              )}
-            </Alert>
-          )}
+            )}
+          </Alert>
+        )}
 
         {/* Show Reopen Reason */}
-        {workorder?.status === "Reopened" && workorder?.reopenDetails && (
+        {mappedStatus === "Reopened" && workorder?.reopenDetails && (
           <Alert severity="info" icon={<Info />}>
             <Typography variant="caption" fontWeight={600} display="block">
               Reopened Reason
@@ -237,7 +229,7 @@ function WorkorderDetailsSection() {
               >
                 Priority Level
               </Typography>
-              {isEditable && !isEditingPriority && (
+              {priorityIsEditable && !isEditingPriority && (
                 <IconButton
                   size="small"
                   onClick={() => setIsEditingPriority(true)}
