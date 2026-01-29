@@ -21,6 +21,10 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Grid from "@mui/material/Grid";
+import FormLabel from "@mui/material/FormLabel";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 
 // MUI Icons
 import Construction from "@mui/icons-material/Construction";
@@ -100,6 +104,7 @@ function CreateWorkorderForm() {
     clientSubmitted: true,
     clientPrice: 0,
     software: "Custom Portal",
+    requiresProposal: false,
     intake: true,
   });
 
@@ -146,6 +151,7 @@ function CreateWorkorderForm() {
       clientSubmitted: true,
       clientPrice: 0,
       software: "Custom Portal",
+      requiresProposal: false,
       intake: true,
     });
     setImages([]);
@@ -196,6 +202,7 @@ function CreateWorkorderForm() {
         createdBy: user?.name,
         createdByEmail: user?.email,
         dateCreated: new Date().getTime(),
+        status: formValues.requiresProposal ? "Requires proposal" : "New",
       };
 
       // Save work order and update parent state
@@ -438,6 +445,43 @@ function CreateWorkorderForm() {
                     availability
                   </Typography>
                 </Alert>
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <FormLabel component="legend">
+                  Will this work order require a proposal?
+                </FormLabel>
+                <FormGroup>
+                  <FormControlLabel
+                    sx={{ my: 1 }}
+                    control={
+                      <Checkbox
+                        checked={formValues.requiresProposal}
+                        onChange={(e) =>
+                          setFormValues((prev) => ({
+                            ...prev,
+                            requiresProposal: e.target.checked,
+                          }))
+                        }
+                      />
+                    }
+                    label="Yes, this work order will require a proposal before proceeding."
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={!formValues.requiresProposal}
+                        onChange={(e) =>
+                          setFormValues((prev) => ({
+                            ...prev,
+                            requiresProposal: !e.target.checked,
+                          }))
+                        }
+                      />
+                    }
+                    label="No, this work order does not require a proposal."
+                  />
+                </FormGroup>
               </Grid>
 
               {/* Description */}
