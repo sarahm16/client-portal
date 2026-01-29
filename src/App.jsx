@@ -180,6 +180,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          exact
+          path="/sites/new"
+          element={
+            <ProtectedRoute permission="view_sites">
+              <Sites />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </ThemeProvider>
   );

@@ -27,6 +27,7 @@ import Construction from "@mui/icons-material/Construction";
 import Delete from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 // Date Library
 import dayjs from "dayjs";
@@ -35,12 +36,16 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 // API
-import { queryItemsFromAzure } from "../../../api/azureApi";
+import { queryItemsFromAzure, saveItemToAzure } from "../../../api/azureApi";
 import { saveImagesToBlobStorage } from "../../../api/storageApi";
 
 // Constants
 import { priorityDueDates, trades } from "../../../constants";
 import convertHeic from "../../../utilities/convertHeic";
+
+// Local Components
+import CreateSiteFormInline from "./CreateSiteFormInline";
+
 const validSiteStatuses = ["Active", "Sourcing", "Unassigned"];
 const modalStyle = {
   position: "absolute",
@@ -62,6 +67,8 @@ function CreateWorkorderForm() {
   const { user } = useAuth();
   const client = user?.client;
 
+  console.log("client", client);
+
   // Context
   const workordersContext = useContext(WorkordersContext);
   const { open, setOpen, handleSaveWorkorder } = workordersContext;
@@ -71,6 +78,8 @@ function CreateWorkorderForm() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [otherService, setOtherService] = useState("");
+
+  const [showSiteForm, setShowSiteForm] = useState(false);
 
   const [formValues, setFormValues] = useState({
     client: client,
@@ -142,13 +151,25 @@ function CreateWorkorderForm() {
     setImages([]);
   };
 
+  const handleSiteCreation = async (site) => {
+    const savedSite = await saveItemToAzure(site, "sites");
+    if (savedSite) {
+      setSites((prevSites) => [savedSite, ...prevSites]);
+      setFormValues((prev) => ({
+        ...prev,
+        site: savedSite,
+      }));
+    }
+    setShowSiteForm(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const convertedImages = await Promise.all(
-        images.map((image) => convertHeic(image))
+        images.map((image) => convertHeic(image)),
       );
       const imageArray = await saveImagesToBlobStorage(convertedImages);
 
@@ -208,346 +229,379 @@ function CreateWorkorderForm() {
           <CircularProgress sx={{ color: "white" }} />
         </Backdrop>
 
-        <Stack
-          component="form"
-          onSubmit={handleSubmit}
-          direction="column"
-          spacing={3}
-        >
-          {/* Header */}
-          <Box>
-            <Typography
-              variant="h5"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                fontWeight: 600,
-                mb: 1,
-              }}
-            >
-              <Construction color="primary" /> Submit Work Order
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Submit a new work order request for your location
-            </Typography>
-          </Box>
-
-          <Divider />
-
-          {/* Form Fields */}
-          <Grid container spacing={3}>
-            {/* Site Selection */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Select Location *
-              </Typography>
-              <Autocomplete
-                options={sites}
-                getOptionLabel={(option) =>
-                  `${option.store}${option.state ? ` - ${option.state}` : ""}`
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    size="small"
-                    placeholder="Choose your location"
-                    required
-                  />
-                )}
-                value={formValues.site}
-                onChange={(e, newValue) => {
-                  setFormValues((prev) => ({
-                    ...prev,
-                    site: newValue,
-                  }));
+        {!showSiteForm && (
+          <Stack
+            component="form"
+            onSubmit={handleSubmit}
+            direction="column"
+            spacing={3}
+          >
+            {/* Header */}
+            <Box>
+              <Typography
+                variant="h5"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  fontWeight: 600,
+                  mb: 1,
                 }}
-                isOptionEqualToValue={(option, value) =>
-                  option.id === value?.id
-                }
-              />
-            </Grid>
-
-            {/* Priority Selection */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Priority Level *
-              </Typography>
-              <Select
-                value={formValues.priority}
-                onChange={handlePriorityChange}
-                size="small"
-                fullWidth
-                required
               >
-                <MenuItem value="P-1">P-1 - Emergency (24 hours)</MenuItem>
-                <MenuItem value="P-2">P-2 - Urgent (2-3 days)</MenuItem>
-                <MenuItem value="P-3">P-3 - Standard (1 week)</MenuItem>
-                <MenuItem value="P-4">P-4 - Low Priority (2+ weeks)</MenuItem>
-              </Select>
-            </Grid>
-
-            {/* Service Selection */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Type of Service *
+                <Construction color="primary" /> Submit Work Order
               </Typography>
-              <Autocomplete
-                options={trades.map((trade) => trade.name)}
-                freeSolo
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    size="small"
-                    placeholder="Select or type service"
-                    required
-                  />
-                )}
-                value={formValues.service}
-                onChange={(e, newValue) => {
-                  setFormValues((prev) => ({
-                    ...prev,
-                    service: newValue || "",
-                  }));
-                }}
-                onInputChange={(e, newValue) => {
-                  setFormValues((prev) => ({
-                    ...prev,
-                    service: newValue || "",
-                  }));
-                }}
-              />
-              {formValues.service === "Other" && (
-                <TextField
-                  sx={{ mt: 1 }}
-                  size="small"
-                  fullWidth
-                  label="Please specify the service"
-                  value={formValues.otherService}
-                  onChange={(e) =>
+              <Typography variant="body2" color="text.secondary">
+                Submit a new work order request for your location
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            {/* Form Fields */}
+            <Grid container spacing={3}>
+              {/* Site Selection */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Select Location *
+                </Typography>
+                <Autocomplete
+                  options={sites}
+                  getOptionLabel={(option) =>
+                    `${option.store}${option.state ? ` - ${option.state}` : ""}`
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      size="small"
+                      placeholder="Choose your location"
+                      required
+                    />
+                  )}
+                  value={formValues.site}
+                  onChange={(e, newValue) => {
                     setFormValues((prev) => ({
                       ...prev,
-                      otherService: e.target.value,
-                    }))
+                      site: newValue,
+                    }));
+                  }}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value?.id
                   }
-                  required={formValues.service === "Other"}
                 />
-              )}
-            </Grid>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Typography variant="body2">
+                    Can't find the location?
+                  </Typography>
+                  <Button size="small" onClick={() => setShowSiteForm(true)}>
+                    Create Location Here
+                  </Button>
+                </Box>
+              </Grid>
 
-            {/* Budget/Client Price */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Initial Budget (Not To Exceed) *
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
-                  type="number"
-                  value={formValues.clientPrice}
-                  onChange={(e) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      clientPrice: Number(e.target.value),
-                    }))
-                  }
+              {/* Priority Selection */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Priority Level *
+                </Typography>
+                <Select
+                  value={formValues.priority}
+                  onChange={handlePriorityChange}
                   size="small"
                   fullWidth
                   required
-                  placeholder="0.00"
-                  inputProps={{ min: 0, step: 0.01 }}
+                >
+                  <MenuItem value="P-1">P-1 - Emergency (24 hours)</MenuItem>
+                  <MenuItem value="P-2">P-2 - Urgent (2-3 days)</MenuItem>
+                  <MenuItem value="P-3">P-3 - Standard (1 week)</MenuItem>
+                  <MenuItem value="P-4">P-4 - Low Priority (2+ weeks)</MenuItem>
+                </Select>
+              </Grid>
+
+              {/* Service Selection */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Type of Service *
+                </Typography>
+                <Autocomplete
+                  options={trades.map((trade) => trade.name)}
+                  freeSolo
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      size="small"
+                      placeholder="Select or type service"
+                      required
+                    />
+                  )}
+                  value={formValues.service}
+                  onChange={(e, newValue) => {
+                    setFormValues((prev) => ({
+                      ...prev,
+                      service: newValue || "",
+                    }));
+                  }}
+                  onInputChange={(e, newValue) => {
+                    setFormValues((prev) => ({
+                      ...prev,
+                      service: newValue || "",
+                    }));
+                  }}
                 />
-                <Select
-                  value={formValues.currency}
+                {formValues.service === "Other" && (
+                  <TextField
+                    sx={{ mt: 1 }}
+                    size="small"
+                    fullWidth
+                    label="Please specify the service"
+                    value={formValues.otherService}
+                    onChange={(e) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        otherService: e.target.value,
+                      }))
+                    }
+                    required={formValues.service === "Other"}
+                  />
+                )}
+              </Grid>
+
+              {/* Budget/Client Price */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Initial Budget (Not To Exceed) *
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <TextField
+                    type="number"
+                    value={formValues.clientPrice}
+                    onChange={(e) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        clientPrice: Number(e.target.value),
+                      }))
+                    }
+                    size="small"
+                    fullWidth
+                    required
+                    placeholder="0.00"
+                    inputProps={{ min: 0, step: 0.01 }}
+                  />
+                  <Select
+                    value={formValues.currency}
+                    onChange={(e) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        currency: e.target.value,
+                      }))
+                    }
+                    size="small"
+                    sx={{ width: 100 }}
+                  >
+                    <MenuItem value="USD">USD</MenuItem>
+                    <MenuItem value="CAD">CAD</MenuItem>
+                  </Select>
+                </Box>
+              </Grid>
+
+              {/* Requested Completion Date */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Requested Completion Date *
+                </Typography>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    value={formValues.dueDate}
+                    onChange={(newValue) => {
+                      setFormValues((prev) => ({
+                        ...prev,
+                        dueDate: newValue,
+                      }));
+                    }}
+                    format="MM/DD/YYYY"
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        fullWidth: true,
+                        required: true,
+                      },
+                    }}
+                    minDate={dayjs()}
+                  />
+                </LocalizationProvider>
+                <Alert
+                  severity="info"
+                  icon={<InfoOutlined fontSize="small" />}
+                  sx={{ mt: 1, py: 0 }}
+                >
+                  <Typography variant="caption">
+                    This is a requested date and may be adjusted based on
+                    availability
+                  </Typography>
+                </Alert>
+              </Grid>
+
+              {/* Description */}
+              <Grid size={12}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Description (Scope of Work) *
+                </Typography>
+                <TextField
+                  multiline
+                  rows={4}
+                  fullWidth
+                  value={formValues.description}
                   onChange={(e) =>
                     setFormValues((prev) => ({
                       ...prev,
-                      currency: e.target.value,
+                      description: e.target.value,
                     }))
                   }
+                  placeholder="Please provide detailed information about the work needed..."
+                  required
                   size="small"
-                  sx={{ width: 100 }}
-                >
-                  <MenuItem value="USD">USD</MenuItem>
-                  <MenuItem value="CAD">CAD</MenuItem>
-                </Select>
-              </Box>
-            </Grid>
-
-            {/* Requested Completion Date */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Requested Completion Date *
-              </Typography>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  value={formValues.dueDate}
-                  onChange={(newValue) => {
-                    setFormValues((prev) => ({
-                      ...prev,
-                      dueDate: newValue,
-                    }));
-                  }}
-                  format="MM/DD/YYYY"
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      required: true,
-                    },
-                  }}
-                  minDate={dayjs()}
                 />
-              </LocalizationProvider>
-              <Alert
-                severity="info"
-                icon={<InfoOutlined fontSize="small" />}
-                sx={{ mt: 1, py: 0 }}
-              >
-                <Typography variant="caption">
-                  This is a requested date and may be adjusted based on
-                  availability
+              </Grid>
+
+              {/* Image Upload */}
+              <Grid size={12}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  Attach Images (Optional)
                 </Typography>
-              </Alert>
+                <Box
+                  sx={{
+                    mt: 1,
+                    border: "2px dashed",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    p: 2,
+                    bgcolor: "grey.50",
+                  }}
+                >
+                  <FileUploader
+                    multiple={true}
+                    handleChange={handleImageUpload}
+                    name="file"
+                    types={["JPG", "PNG", "JPEG", "GIF", "HEIC"]}
+                    children={
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 1,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <ImageIcon color="primary" sx={{ fontSize: 40 }} />
+                        <Typography variant="body2" color="text.secondary">
+                          Drop images here or click to browse
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Supports: JPG, PNG, JPEG, GIF
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </Box>
+
+                {/* Show uploaded images */}
+                {images.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography
+                      variant="caption"
+                      fontWeight={600}
+                      color="text.secondary"
+                    >
+                      {images.length} image(s) selected:
+                    </Typography>
+                    {images.map((image, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: 1,
+                          p: 1,
+                          bgcolor: "background.paper",
+                          borderRadius: 1,
+                          border: 1,
+                          borderColor: "divider",
+                        }}
+                      >
+                        <ImageIcon fontSize="small" color="action" />
+                        <Typography variant="body2" sx={{ flex: 1 }}>
+                          {image.name}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            setImages(images.filter((_, i) => i !== index))
+                          }
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Grid>
             </Grid>
 
-            {/* Description */}
-            <Grid size={12}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Description (Scope of Work) *
-              </Typography>
-              <TextField
-                multiline
-                rows={4}
-                fullWidth
-                value={formValues.description}
-                onChange={(e) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
+            <Divider />
+
+            {/* Action Buttons */}
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              <Button size="medium" onClick={handleClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                color="primary"
+                type="submit"
+                size="medium"
+                variant="contained"
+                disabled={
+                  loading ||
+                  !formValues.site ||
+                  !formValues.service ||
+                  !formValues.description ||
+                  !formValues.dueDate ||
+                  !formValues.clientPrice
                 }
-                placeholder="Please provide detailed information about the work needed..."
-                required
-                size="small"
-              />
-            </Grid>
-
-            {/* Image Upload */}
-            <Grid size={12}>
-              <Typography variant="caption" fontWeight={600} gutterBottom>
-                Attach Images (Optional)
-              </Typography>
-              <Box
                 sx={{
-                  mt: 1,
-                  border: "2px dashed",
-                  borderColor: "divider",
-                  borderRadius: 2,
-                  p: 2,
-                  bgcolor: "grey.50",
+                  minWidth: 140,
+                  fontWeight: 600,
                 }}
               >
-                <FileUploader
-                  multiple={true}
-                  handleChange={handleImageUpload}
-                  name="file"
-                  types={["JPG", "PNG", "JPEG", "GIF", "HEIC"]}
-                  children={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 1,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <ImageIcon color="primary" sx={{ fontSize: 40 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        Drop images here or click to browse
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Supports: JPG, PNG, JPEG, GIF
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </Box>
+                {loading ? "Submitting..." : "Submit Work Order"}
+              </Button>
+            </Box>
+          </Stack>
+        )}
 
-              {/* Show uploaded images */}
-              {images.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography
-                    variant="caption"
-                    fontWeight={600}
-                    color="text.secondary"
-                  >
-                    {images.length} image(s) selected:
-                  </Typography>
-                  {images.map((image, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        mt: 1,
-                        p: 1,
-                        bgcolor: "background.paper",
-                        borderRadius: 1,
-                        border: 1,
-                        borderColor: "divider",
-                      }}
-                    >
-                      <ImageIcon fontSize="small" color="action" />
-                      <Typography variant="body2" sx={{ flex: 1 }}>
-                        {image.name}
-                      </Typography>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() =>
-                          setImages(images.filter((_, i) => i !== index))
-                        }
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Grid>
-          </Grid>
+        {showSiteForm && (
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+              <IconButton onClick={() => setShowSiteForm(false)}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Create New Location
+              </Typography>
+            </Box>
 
-          <Divider />
+            <Alert severity="info" sx={{ mb: 3 }}>
+              After creating the location, you'll return to your work order form
+            </Alert>
 
-          {/* Action Buttons */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            <Button size="medium" onClick={handleClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button
-              color="primary"
-              type="submit"
-              size="medium"
-              variant="contained"
-              disabled={
-                loading ||
-                !formValues.site ||
-                !formValues.service ||
-                !formValues.description ||
-                !formValues.dueDate ||
-                !formValues.clientPrice
-              }
-              sx={{
-                minWidth: 140,
-                fontWeight: 600,
-              }}
-            >
-              {loading ? "Submitting..." : "Submit Work Order"}
-            </Button>
+            <CreateSiteFormInline
+              onSave={handleSiteCreation}
+              onCancel={() => setShowSiteForm(false)}
+              client={client}
+            />
           </Box>
-        </Stack>
+        )}
       </Box>
     </Modal>
   );

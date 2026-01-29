@@ -17,6 +17,7 @@ import Container from "@mui/material/Container";
 import { DataGrid } from "@mui/x-data-grid";
 import CreateWorkorderForm from "./components/CreateWorkorderForm";
 import CreateSiteForm from "./components/CreateSiteForm";
+import { useParams } from "react-router-dom";
 
 function Sites() {
   const { user } = useAuth();
@@ -34,10 +35,14 @@ function Sites() {
   const client = user?.client?.name;
 
   useEffect(() => {
+    setShowCreateModal(window.location.pathname === "/sites/new");
+  }, [window.location.pathname]);
+
+  useEffect(() => {
     const fetchSites = async () => {
       try {
         const response = await querySites(
-          `SELECT * FROM c WHERE c.client = '${client}'`
+          `SELECT * FROM c WHERE c.client = '${client}'`,
         );
         console.log("Fetched sites:", response);
         setSites(response);
