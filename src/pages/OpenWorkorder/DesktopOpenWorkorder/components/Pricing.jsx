@@ -42,7 +42,7 @@ function PricingSection() {
 
   // Find pending requests that have been sent to client
   const pendingClientRequests = nteRequests.filter(
-    (req) => req.status === "Pending" && req.sentToClient,
+    (req) => !req.clientResponse && req.sentToClient,
   );
 
   const [approveOpen, setApproveOpen] = useState(false);
@@ -58,7 +58,6 @@ function PricingSection() {
         r.date === selectedRequest.date
           ? {
               ...r,
-              status: "Approved",
               clientApprovedDate: new Date().getTime(),
               clientResponse: "Approved",
             }
@@ -101,7 +100,6 @@ function PricingSection() {
         r.date === selectedRequest.date
           ? {
               ...r,
-              status: "Denied",
               clientDeniedDate: new Date().getTime(),
               clientResponse: "Denied",
               clientDenyReason: clientDenyReason,
@@ -564,7 +562,7 @@ function PricingSection() {
         </Box>
 
         {/* NTE History */}
-        {nteRequests.filter((req) => req.status !== "Pending").length > 0 && (
+        {nteRequests.filter((req) => req.clientResponse).length > 0 && (
           <>
             <Divider sx={{ my: 3 }} />
             <Box>
@@ -576,17 +574,21 @@ function PricingSection() {
               </Typography>
               <Stack spacing={1.5}>
                 {nteRequests
-                  .filter((req) => req.status !== "Pending")
+                  .filter((req) => req.clientResponse)
                   .map((request) => (
                     <Box
                       key={request.date}
                       sx={{
                         p: 2,
                         bgcolor:
-                          request.status === "Approved" ? "#f1f8f4" : "#ffebee",
+                          request.clientResponse === "Approved"
+                            ? "#f1f8f4"
+                            : "#ffebee",
                         border: "1px solid",
                         borderColor:
-                          request.status === "Approved" ? "#4caf50" : "#f44336",
+                          request.clientResponse === "Approved"
+                            ? "#4caf50"
+                            : "#f44336",
                         borderRadius: 1,
                       }}
                     >
@@ -602,8 +604,8 @@ function PricingSection() {
                           {formatCurrency(request.clientAmount)}
                         </Typography>
                         <Chip
-                          label={request.status}
-                          color={nteStatusColors[request.status]}
+                          label={request.clientResponse}
+                          color={nteStatusColors[request.clientResponse]}
                           size="small"
                         />
                       </Box>
