@@ -15,8 +15,8 @@ import Container from "@mui/material/Container";
 
 // Data Grid
 import { DataGrid } from "@mui/x-data-grid";
-import CreateWorkorderForm from "./components/CreateWorkorderForm";
-import CreateSiteForm from "./components/CreateSiteForm";
+/* import CreateWorkorderForm from "./components/CreateWorkorderForm";
+ */ import CreateSiteForm from "./components/CreateSiteForm";
 
 function Sites() {
   const { user } = useAuth();
@@ -25,13 +25,13 @@ function Sites() {
 
   const [showCreateModal, setShowCreateModal] = useState(false); // Open state for Create Site modal
 
-  const [showSiteForm, setShowSiteForm] = useState(false);
-
+  /*   const [showSiteForm, setShowSiteForm] = useState(false);
+   */
   // Open state for create work order modal
-  const open = Boolean(selectedSite);
+  /*   const open = Boolean(selectedSite);
   const handleClose = () => {
     setSelectedSite(null);
-  };
+  }; */
 
   const client = user?.client?.name;
 
@@ -87,7 +87,7 @@ function Sites() {
       headerName: "Zip Code",
       flex: 0.7,
     },
-    {
+    /*     {
       field: "actions",
       headerName: "Actions",
       flex: 0.75,
@@ -105,7 +105,7 @@ function Sites() {
           Create Work Order
         </Button>
       ),
-    },
+    }, */
   ];
 
   const handleSaveSite = async (newSite) => {
@@ -125,13 +125,13 @@ function Sites() {
           onSave={(newSite) => handleSaveSite(newSite)}
         />
       )}
-      {selectedSite && (
+      {/*       {selectedSite && (
         <CreateWorkorderForm
           selectedSite={selectedSite}
           open={open}
           closeModal={handleClose}
         />
-      )}
+      )} */}
       <Container maxWidth="80vw" sx={{ py: 4 }}>
         {/* Header */}
         <Box
