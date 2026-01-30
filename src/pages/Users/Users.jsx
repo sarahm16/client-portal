@@ -35,6 +35,7 @@ import { usePermissions, useRole } from "../../auth/hooks/usePermissions";
 import { useAuth } from "../../auth/hooks/AuthContext";
 import { azureClient } from "../../api/azureClient";
 import { saveItemToAzure } from "../../api/azureApi";
+import { RestartAlt } from "@mui/icons-material";
 
 const getInitials = (name) => {
   return name
@@ -265,14 +266,18 @@ function Users() {
           </IconButton>
           <IconButton
             size="small"
-            color="error"
+            color={params.row?.status === "Active" ? "error" : "success"}
             onClick={(e) => {
               e.stopPropagation();
               console.log("Block user:", params.row.id);
               setUserToBlock(params.row);
             }}
           >
-            <BlockIcon fontSize="small" />
+            {params.row?.status === "Active" ? (
+              <BlockIcon fontSize="small" />
+            ) : (
+              <RestartAlt fontSize="small" />
+            )}
           </IconButton>
         </Box>
       ),
