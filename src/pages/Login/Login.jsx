@@ -58,7 +58,7 @@ function ChangePasswordModal({ open, onClose, email, onSuccess }) {
         {
           email,
           newPassword,
-        }
+        },
       );
 
       console.log("Change password response:", response.data);
@@ -220,7 +220,7 @@ export default function LoginPage() {
         {
           email,
           password,
-        }
+        },
       );
 
       console.log("Login response data:", loginResponse.data);
@@ -231,6 +231,10 @@ export default function LoginPage() {
 
       // Handle different response messages
       switch (message) {
+        case "Account is deactivated":
+          setEmailError("This account has been deactivated.");
+          break;
+
         case "No account with this email found":
           setEmailError("No account with this email found");
           break;
@@ -261,7 +265,7 @@ export default function LoginPage() {
     } catch (error) {
       console.error("Login error:", error);
       setGeneralError(
-        "Unable to connect to the server. Please try again later."
+        "Unable to connect to the server. Please try again later.",
       );
     } finally {
       setLoading(false);

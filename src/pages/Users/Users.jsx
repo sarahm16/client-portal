@@ -19,12 +19,13 @@ import BusinessIcon from "@mui/icons-material/Business";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import BlockIcon from "@mui/icons-material/Block";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 
 // Custom Components
 import CreateUserModal from "./components/CreateUserModal";
+import DeactiveUserModal from "./components/DeactivateUserModal";
 
 // Constants
 import { PERMISSIONS } from "../../auth/permissions";
@@ -70,6 +71,8 @@ function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const showEditModal = Boolean(selectedUser);
 
+  const [userToBlock, setUserToBlock] = useState(null);
+
   const { user } = useAuth();
   const client = user?.client;
   const { isInternalAdmin, isExternalAdmin } = useRole();
@@ -84,7 +87,7 @@ function Users() {
   const fetchUsers = async () => {
     try {
       const response = await azureClient.get(
-        "/getAll?databaseId=procurement&containerId=users"
+        "/getAll?databaseId=procurement&containerId=users",
       );
 
       console.log("Fetched users:", response.data);
@@ -118,7 +121,13 @@ function Users() {
 
     const savedUser = await saveItemToAzure(editedUser, "users");
     setUsers((prevUsers) =>
-      prevUsers.map((user) => (user.id === savedUser.id ? savedUser : user))
+      prevUsers.map((user) => (user.id === savedUser.id ? savedUser : user)),
+    );
+  };
+
+  const refreshUsers = (updatedUser) => {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
     );
   };
 
@@ -129,7 +138,7 @@ function Users() {
       width: 100,
       renderCell: (params) => {
         const status = params.value;
-        const color = status === "Active" ? "success" : "default";
+        const color = status === "Active" ? "success" : "error";
         return (
           <Stack direction="column" height="100%" justifyContent={"center"}>
             <Chip
@@ -259,10 +268,11 @@ function Users() {
             color="error"
             onClick={(e) => {
               e.stopPropagation();
-              console.log("Delete user:", params.row.id);
+              console.log("Block user:", params.row.id);
+              setUserToBlock(params.row);
             }}
           >
-            <DeleteIcon fontSize="small" />
+            <BlockIcon fontSize="small" />
           </IconButton>
         </Box>
       ),
@@ -271,6 +281,13 @@ function Users() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      {userToBlock && (
+        <DeactiveUserModal
+          userToBlock={userToBlock}
+          onClose={() => setUserToBlock(null)}
+          refreshUsers={refreshUsers}
+        />
+      )}
       {showCreateModal && (
         <CreateUserModal
           open={showCreateModal}
