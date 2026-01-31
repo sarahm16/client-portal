@@ -26,14 +26,14 @@ function DesktopWorkorders() {
    */ const role = user?.role || "External Admin";
 
   const columns = [
-    // Identifiers and general type
+    /*     // Identifiers and general type
     {
       field: "client",
       headerName: "Client",
       flex: 0.5,
       renderCell: (params) => params.row?.client?.name,
       valueGetter: (value, row) => row?.client?.name || "",
-    },
+    }, */
     {
       field: "id",
       headerName: "NFC ID",
