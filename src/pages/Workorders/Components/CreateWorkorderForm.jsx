@@ -106,6 +106,7 @@ function CreateWorkorderForm() {
     software: "Custom Portal",
     requiresProposal: false,
     intake: true,
+    portalWorkorderId: "",
   });
 
   useEffect(() => {
@@ -153,6 +154,7 @@ function CreateWorkorderForm() {
       software: "Custom Portal",
       requiresProposal: false,
       intake: true,
+      portalWorkorderId: "",
     });
     setImages([]);
   };
@@ -304,7 +306,6 @@ function CreateWorkorderForm() {
                   </Button>
                 </Box>
               </Grid>
-
               {/* Priority Selection */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="caption" fontWeight={600} gutterBottom>
@@ -323,7 +324,6 @@ function CreateWorkorderForm() {
                   <MenuItem value="P-4">P-4 - Low Priority (2+ weeks)</MenuItem>
                 </Select>
               </Grid>
-
               {/* Service Selection */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="caption" fontWeight={600} gutterBottom>
@@ -371,7 +371,6 @@ function CreateWorkorderForm() {
                   />
                 )}
               </Grid>
-
               {/* Budget/Client Price */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="caption" fontWeight={600} gutterBottom>
@@ -409,7 +408,6 @@ function CreateWorkorderForm() {
                   </Select>
                 </Box>
               </Grid>
-
               {/* Requested Completion Date */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="caption" fontWeight={600} gutterBottom>
@@ -446,7 +444,32 @@ function CreateWorkorderForm() {
                   </Typography>
                 </Alert>
               </Grid>
-
+              {/* External Work Order ID */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="caption" fontWeight={600} gutterBottom>
+                  External Work Order ID (Optional)
+                </Typography>
+                <TextField
+                  size="small"
+                  fullWidth
+                  value={formValues.portalWorkorderId}
+                  onChange={(e) =>
+                    setFormValues((prev) => ({
+                      ...prev,
+                      portalWorkorderId: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter external work order ID"
+                />
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, display: "block" }}
+                >
+                  If this work order is tracked in another system, enter the ID
+                  here
+                </Typography>
+              </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <FormLabel component="legend">
                   Will this work order require a proposal?
@@ -483,7 +506,6 @@ function CreateWorkorderForm() {
                   />
                 </FormGroup>
               </Grid>
-
               {/* Description */}
               <Grid size={12}>
                 <Typography variant="caption" fontWeight={600} gutterBottom>
@@ -505,7 +527,6 @@ function CreateWorkorderForm() {
                   size="small"
                 />
               </Grid>
-
               {/* Image Upload */}
               <Grid size={12}>
                 <Typography variant="caption" fontWeight={600} gutterBottom>

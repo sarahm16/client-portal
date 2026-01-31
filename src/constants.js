@@ -51,7 +51,7 @@ export const mappedClientStatuses = {
     opsStatuses: ["Cancelled"],
   },
   "Requires proposal": {
-    color: "warning",
+    color: "info",
     opsStatuses: ["Requires proposal"],
   },
   "Waiting approval": {
