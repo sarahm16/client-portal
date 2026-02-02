@@ -226,7 +226,7 @@ function PricingSection() {
             </Stack>
           </Box>
 
-          {selectedRequest?.reason && (
+          {selectedRequest?.customReason && (
             <Box
               sx={{
                 p: 2,
@@ -242,7 +242,7 @@ function PricingSection() {
                 Reason for Increase
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, color: "#856404" }}>
-                {selectedRequest.reason}
+                {selectedRequest?.customReason}
               </Typography>
             </Box>
           )}
