@@ -50,11 +50,15 @@ function Workorders() {
     const fetchWorkorders = async () => {
       const response = await getItemsFromAzure("workorders");
       const roleFilteredArray = userIsInternalAdmin
-        ? response.filter((wo) => wo.intake)
-        : response.filter(
-            (wo) =>
-              wo.client?.id === client?.id && !wo.financeStatus && wo.intake,
-          );
+        ? response
+            .filter((wo) => wo.intake)
+            ?.sort((a, b) => b.createdDate - a.createdDate)
+        : response
+            .filter(
+              (wo) =>
+                wo.client?.id === client?.id && !wo.financeStatus && wo.intake,
+            )
+            ?.sort((a, b) => b.createdDate - a.createdDate);
 
       setWorkorders(roleFilteredArray);
       setUnfilteredWorkorders(roleFilteredArray);

@@ -2,6 +2,8 @@ import React, { useState, useContext } from "react";
 
 // Local imports
 import { WorkorderContext } from "../../OpenWorkorder";
+import { useAuth } from "../../../../auth/hooks/AuthContext";
+import ImageUploader from "./ImageUploader";
 
 // MUI Components
 import Box from "@mui/material/Box";
@@ -12,13 +14,20 @@ import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
 import Skeleton from "@mui/material/Skeleton";
 import Button from "@mui/material/Button";
-import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 // MUI Icons
 import Image from "@mui/icons-material/Image";
 import ZoomIn from "@mui/icons-material/ZoomIn";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import ExpandLess from "@mui/icons-material/ExpandLess";
+import Delete from "@mui/icons-material/Delete";
+import Warning from "@mui/icons-material/Warning";
 
 // Reusable Card Component
 const CardComponent = ({ children, ...props }) => (
@@ -38,7 +47,7 @@ const CardComponent = ({ children, ...props }) => (
 );
 
 // Lazy Loading Image Component
-function LazyImage({ src, alt, onClick }) {
+function LazyImage({ src, alt, onClick, setImageToRemove }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
@@ -74,7 +83,6 @@ function LazyImage({ src, alt, onClick }) {
       <img
         src={src}
         alt={alt}
-        loading="lazy"
         onLoad={() => setLoaded(true)}
         onError={() => setError(true)}
         style={{
@@ -88,7 +96,6 @@ function LazyImage({ src, alt, onClick }) {
       {loaded && (
         <Box
           className="zoom-overlay"
-          onClick={onClick}
           sx={{
             position: "absolute",
             top: 0,
@@ -99,6 +106,7 @@ function LazyImage({ src, alt, onClick }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            gap: 1,
             opacity: 0,
             transition: "opacity 0.3s ease",
             cursor: "pointer",
@@ -108,18 +116,151 @@ function LazyImage({ src, alt, onClick }) {
             },
           }}
         >
-          <ZoomIn sx={{ color: "white", fontSize: 48 }} />
+          <Box
+            onClick={onClick}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flex: 1,
+            }}
+          >
+            <ZoomIn sx={{ color: "white", fontSize: 48 }} />
+          </Box>
+          <IconButton
+            size="small"
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              bgcolor: "rgba(255, 255, 255, 0.9)",
+              color: "error.main",
+              "&:hover": {
+                bgcolor: "white",
+                transform: "scale(1.1)",
+              },
+              transition: "all 0.2s ease",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setImageToRemove(src);
+            }}
+          >
+            <Delete fontSize="small" />
+          </IconButton>
         </Box>
       )}
     </Box>
   );
 }
 
+// Delete Confirmation Modal
+function DeleteConfirmationModal({ open, onClose, onConfirm, imageUrl }) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    await onConfirm(imageUrl);
+    setIsDeleting(false);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={isDeleting ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+        },
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              bgcolor: "error.50",
+              p: 1,
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Warning color="error" />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Delete Image?
+          </Typography>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent>
+        <DialogContentText>
+          Are you sure you want to delete this image? This action cannot be
+          undone.
+        </DialogContentText>
+
+        {imageUrl && (
+          <Box
+            sx={{
+              mt: 2,
+              borderRadius: 2,
+              overflow: "hidden",
+              border: 1,
+              borderColor: "divider",
+            }}
+          >
+            <img
+              src={imageUrl}
+              alt="Image to delete"
+              style={{
+                width: "100%",
+                maxHeight: 200,
+                objectFit: "cover",
+              }}
+            />
+          </Box>
+        )}
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+        <Button
+          onClick={onClose}
+          disabled={isDeleting}
+          variant="outlined"
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          disabled={isDeleting}
+          variant="contained"
+          color="error"
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
+        >
+          {isDeleting ? "Deleting..." : "Delete Image"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function InitialImagesSection() {
-  const { workorder } = useContext(WorkorderContext);
+  const { workorder, handleUpdateWorkorder } = useContext(WorkorderContext);
   const initialImages = workorder?.images || [];
   const [selectedImage, setSelectedImage] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  const [imageToRemove, setImageToRemove] = useState(null);
 
   // Show first 6 images by default, expand to show all
   const INITIAL_DISPLAY_COUNT = 2;
@@ -127,6 +268,33 @@ function InitialImagesSection() {
     ? initialImages
     : initialImages.slice(0, INITIAL_DISPLAY_COUNT);
   const hasMoreImages = initialImages.length > INITIAL_DISPLAY_COUNT;
+
+  // User
+  const { user } = useAuth();
+
+  const handleRemoveImage = async (imageUrl) => {
+    try {
+      const updates = {
+        images: initialImages.filter((img) => img !== imageUrl),
+        activity: [
+          {
+            date: new Date().getTime(),
+            user: user?.name || "Unknown User",
+            action: `Removed an initial photo`,
+          },
+          ...workorder.activity,
+        ],
+      };
+
+      const updateResponse = await handleUpdateWorkorder(updates);
+      console.log("Image removed successfully:", updateResponse);
+      setImageToRemove(null);
+    } catch (error) {
+      console.error("Error removing image:", error);
+      // Optionally show an error message to the user
+      alert(`Failed to delete image: ${error.message}`);
+    }
+  };
 
   if (initialImages.length === 0) {
     return (
@@ -151,6 +319,7 @@ function InitialImagesSection() {
         <Alert severity="info" icon={<Image />} sx={{ borderRadius: 2 }}>
           No initial photos were uploaded with this work order.
         </Alert>
+        <ImageUploader />
       </CardComponent>
     );
   }
@@ -181,6 +350,8 @@ function InitialImagesSection() {
           </Box>
         </Box>
 
+        <ImageUploader />
+
         <ImageList cols={2} gap={12}>
           {displayImages.map((image, index) => (
             <ImageListItem
@@ -193,9 +364,10 @@ function InitialImagesSection() {
               }}
             >
               <LazyImage
-                src={image?.split("?sp=")[0]} // Remove SAS token for display
+                src={image}
                 alt={`Initial photo ${index + 1}`}
                 onClick={() => setSelectedImage(image)}
+                setImageToRemove={setImageToRemove}
               />
             </ImageListItem>
           ))}
@@ -222,6 +394,14 @@ function InitialImagesSection() {
           </Box>
         )}
       </CardComponent>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        open={!!imageToRemove}
+        onClose={() => setImageToRemove(null)}
+        onConfirm={handleRemoveImage}
+        imageUrl={imageToRemove}
+      />
 
       {/* Image Modal */}
       {selectedImage && (
