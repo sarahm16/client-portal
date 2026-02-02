@@ -18,6 +18,8 @@ import Stack from "@mui/material/Stack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 // Context
 import { WorkorderContext } from "../../OpenWorkorder";
@@ -33,6 +35,105 @@ const nteStatusColors = {
   Approved: "success",
   Denied: "error",
 };
+
+// Strip timestamp prefix and any query-string (SAS token) from a blob URL
+const getFileName = (url) => {
+  try {
+    const path = new URL(url).pathname; // e.g. /container/1234567890_invoice.pdf
+    const raw = path.split("/").pop(); // 1234567890_invoice.pdf
+    const withoutTimestamp = raw.replace(/^\d+_/, ""); // invoice.pdf
+    return decodeURIComponent(withoutTimestamp) || "attachment";
+  } catch {
+    return "attachment";
+  }
+};
+
+// Reusable list of clickable attachment pills
+function AttachmentList({ urls }) {
+  if (!urls?.length) return null;
+
+  return (
+    <Box sx={{ mt: 1.5 }}>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 600,
+          color: "text.secondary",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+        }}
+      >
+        Attachments
+      </Typography>
+      <Stack spacing={1} sx={{ mt: 1 }}>
+        {urls.map((url, i) => (
+          <Box
+            key={i}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              p: 1.25,
+              bgcolor: "background.paper",
+              borderRadius: 1.5,
+              border: 1,
+              borderColor: "divider",
+              transition: "all 0.15s ease",
+              "&:hover": {
+                borderColor: "primary.main",
+                boxShadow: 1,
+              },
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: "primary.50",
+                p: 0.6,
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <AttachFileIcon sx={{ fontSize: 16, color: "primary.main" }} />
+            </Box>
+            <Typography
+              variant="body2"
+              sx={{
+                flex: 1,
+                fontWeight: 500,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {getFileName(url)}
+            </Typography>
+            <Button
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              size="small"
+              variant="outlined"
+              color="primary"
+              endIcon={<OpenInNewIcon sx={{ fontSize: "14px !important" }} />}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "0.75rem",
+                py: 0.35,
+                px: 1,
+                borderRadius: 1,
+                flexShrink: 0,
+              }}
+            >
+              Open
+            </Button>
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
 
 // Pricing & Scope Component
 function PricingSection() {
@@ -452,9 +553,12 @@ function PricingSection() {
                   Reason for Increase
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 0.5, color: "#856404" }}>
-                  {request.reason}
+                  {request.customReason}
                 </Typography>
               </Box>
+
+              {/* Attachments */}
+              <AttachmentList urls={request.attachments} />
 
               <Box
                 sx={{
@@ -615,6 +719,7 @@ function PricingSection() {
                             request.clientDeniedDate,
                         ).toLocaleDateString()}
                       </Typography>
+                      <AttachmentList urls={request.attachments} />
                     </Box>
                   ))}
               </Stack>
