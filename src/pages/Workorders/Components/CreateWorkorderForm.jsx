@@ -176,6 +176,9 @@ function CreateWorkorderForm() {
     setLoading(true);
 
     try {
+      const clientPrice = Number(formValues.clientPrice);
+      const workorderType = clientPrice > 6000 ? "Project" : "On Demand";
+
       const convertedImages = await Promise.all(
         images.map((image) => convertHeic(image)),
       );
@@ -205,6 +208,7 @@ function CreateWorkorderForm() {
         createdByEmail: user?.email,
         dateCreated: new Date().getTime(),
         status: formValues.requiresProposal ? "Requires proposal" : "New",
+        workorderType: workorderType,
       };
 
       // Save work order and update parent state
