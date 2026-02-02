@@ -30,6 +30,7 @@ function DesktopWorkorders() {
   const columns = [
     /*     // Identifiers and general type
      */
+
     {
       field: "id",
       headerName: "NFC ID",
@@ -102,6 +103,11 @@ function DesktopWorkorders() {
       width: 150,
       renderCell: (params) =>
         new Date(params.row.createdDate).toLocaleDateString(),
+    },
+    {
+      field: "createdBy",
+      headerName: "Created By",
+      width: 150,
     },
     {
       field: "projectManager",
