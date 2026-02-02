@@ -23,21 +23,22 @@ function DesktopWorkorders() {
   const { user } = useAuth();
   console.log("user", user);
   /*   const role = "External Admin";
-   */ const role = user?.role || "External Admin";
+   */
+
+  const role = user?.role || "Employee";
 
   const columns = [
     /*     // Identifiers and general type
-    {
-      field: "client",
-      headerName: "Client",
-      flex: 0.5,
-      renderCell: (params) => params.row?.client?.name,
-      valueGetter: (value, row) => row?.client?.name || "",
-    }, */
+     */
     {
       field: "id",
       headerName: "NFC ID",
       width: 90,
+    },
+    {
+      field: "portalWorkorderId",
+      headerName: "External ID",
+      width: 100,
     },
     {
       field: "workorderType",
@@ -117,6 +118,16 @@ function DesktopWorkorders() {
       width: 150,
     },
   ];
+
+  if (role === "Internal Admin") {
+    columns.unshift({
+      field: "client",
+      headerName: "Client",
+      flex: 0.5,
+      renderCell: (params) => params.row?.client?.name,
+      valueGetter: (value, row) => row?.client?.name || "",
+    });
+  }
 
   return (
     <>

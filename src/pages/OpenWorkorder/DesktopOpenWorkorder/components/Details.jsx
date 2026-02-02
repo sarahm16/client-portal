@@ -29,6 +29,8 @@ import CardComponent from "./CardComponent";
 import StackComp from "./StackComponent";
 import Reopen from "./Reopen";
 import CancelWorkorder from "./Cancel";
+
+// Constants
 import { mappedClientStatuses } from "../../../../constants";
 
 // Priority configuration with due dates in days
@@ -271,6 +273,12 @@ function WorkorderDetailsSection() {
         )}
 
         <Divider />
+
+        <StackComp
+          title="External Work Order ID"
+          value={workorder?.portalWorkorderId || "Not specified"}
+          icon={<Schedule fontSize="small" color="action" />}
+        />
 
         <StackComp
           title="Service Type"
