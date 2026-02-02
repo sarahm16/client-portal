@@ -183,6 +183,8 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
 
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
+    } else if (!formData.phone) {
+      newErrors.phone = "Phone number is required";
     } else if (!validateEmail(formData.email)) {
       newErrors.email = "Invalid email format";
     } else if (checkIfUserExists(formData.email, users)) {
@@ -408,6 +410,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
               fullWidth
               variant="outlined"
               placeholder="+1 (555) 123-4567"
+              required
             />
           </Box>
         </DialogContent>
