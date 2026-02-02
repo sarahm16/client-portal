@@ -97,6 +97,17 @@ function SiteDetailsSection() {
             {site?.contact?.phone && (
               <StackComp title="Phone" value={site.contact.phone} />
             )}
+
+            {workorder?.createdBy && (
+              <StackComp title="Created By" value={workorder?.createdBy} />
+            )}
+
+            {workorder?.createdByEmail && (
+              <StackComp
+                title="Created By Email"
+                value={workorder?.createdByEmail}
+              />
+            )}
           </>
         )}
       </Stack>
