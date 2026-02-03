@@ -39,13 +39,15 @@ const generateEmailBody = (
   client,
   store,
   workorderType,
+  amountRequested,
+  denialReason,
 ) => {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Proposal {{decision}}</title>
+  <title>NTE Increase Request ${decision}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
@@ -55,7 +57,7 @@ const generateEmailBody = (
           <!-- Header - Use green (#059669) for approved, red (#dc2626) for denied -->
           <tr>
             <td style="background-color: ${decision === "Approved" ? "#059669" : "#dc2626"}; padding: 24px 32px;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Proposal ${decision}</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">NTE Increase ${decision}</h1>
             </td>
           </tr>
           
@@ -72,7 +74,7 @@ const generateEmailBody = (
               </table>
               
               <p style="margin: 0 0 24px 0; color: #374151; font-size: 16px; line-height: 1.5;">
-                The client has <strong>${decisionLower}</strong> the proposal for the following work order.
+                The client has <strong>${decision.toLowerCase()}</strong> the NTE increase request for the following work order.
               </p>
               
               <!-- Work Order Details -->
@@ -99,11 +101,29 @@ const generateEmailBody = (
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding: 8px 0;">
+                        <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                           <span style="color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Work Order Type</span>
                           <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 500;">${workorderType}</p>
                         </td>
                       </tr>
+                      <tr>
+                        <td style="padding: 8px 0; ${denialReason ? "border-bottom: 1px solid #e5e7eb;" : ""}">
+                          <span style="color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Amount Requested</span>
+                          <p style="margin: 4px 0 0 0; color: #111827; font-size: 18px; font-weight: 600;">${amountRequested}</p>
+                        </td>
+                      </tr>
+                      ${
+                        denialReason
+                          ? `
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <span style="color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Reason for Denial</span>
+                          <p style="margin: 4px 0 0 0; color: #991b1b; font-size: 15px; line-height: 1.5;">${denialReason}</p>
+                        </td>
+                      </tr>
+                      `
+                          : ""
+                      }
                     </table>
                   </td>
                 </tr>
@@ -138,6 +158,8 @@ Template Variables:
 - {{client}}: Client name
 - {{store}}: Store name/location
 - {{workorderType}}: Type of work order
+- {{amountRequested}}: Formatted currency amount (e.g., "$1,500.00")
+- {{denialReason}}: Reason provided if denied (only shown when denied)
 -->`;
 };
 
@@ -294,7 +316,7 @@ function PricingSection() {
 
       await handleUpdateWorkorder(updates);
 
-      // TODO: Send notification email to operations team
+      // Send notification email to operations team
       const emailBody = generateEmailBody(
         "Approved", // Decision
         "approved", // Decision lowercase
@@ -302,6 +324,8 @@ function PricingSection() {
         workorder?.client?.name,
         workorder?.site?.name,
         workorder?.workorderType,
+        formatCurrency(Number(selectedRequest.clientAmount)),
+        null, // No denial reason
       );
 
       const emailRecipients = generateEmailRecipients([
@@ -351,8 +375,7 @@ function PricingSection() {
         ],
       });
 
-      // TODO: Send notification email to operations team
-      // TODO: Send notification email to operations team
+      // Send notification email to operations team
       const emailBody = generateEmailBody(
         "Denied", // Decision
         "denied", // Decision lowercase
@@ -360,6 +383,8 @@ function PricingSection() {
         workorder?.client?.name,
         workorder?.site?.name,
         workorder?.workorderType,
+        formatCurrency(Number(selectedRequest.clientAmount)),
+        clientDenyReason,
       );
 
       const emailRecipients = generateEmailRecipients([

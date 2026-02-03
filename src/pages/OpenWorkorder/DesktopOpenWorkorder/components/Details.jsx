@@ -202,9 +202,9 @@ function WorkorderDetailsSection() {
   };
 
   const handleProposalDecision = async (approved) => {
-    /*     handleUpdateWorkorder({
+    handleUpdateWorkorder({
       status: approved ? "Proposal Approved" : "Proposal Denied",
-    }); */
+    });
 
     // TODO: Send notification email to operations team
     const emailBody = generateEmailBody(
