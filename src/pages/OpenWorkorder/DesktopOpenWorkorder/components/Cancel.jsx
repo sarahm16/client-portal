@@ -140,7 +140,7 @@ function CancelWorkorder() {
     setError("");
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!reason.trim()) {
       setError("Please provide a reason for cancellation");
       return;
@@ -175,7 +175,7 @@ function CancelWorkorder() {
       "sarah.carter@evergreenbrands.com",
     ]);
 
-    sendEmailFromHTML(
+    await sendEmailFromHTML(
       `Work Order Cancelled - ` + workorder.id,
       emailBody,
       recipients,
