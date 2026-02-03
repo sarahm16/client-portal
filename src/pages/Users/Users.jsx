@@ -254,7 +254,7 @@ function Users() {
       filterable: false,
       renderCell: (params) => (
         <Box display="flex" gap={0.5}>
-          <IconButton
+          {/*           <IconButton
             size="small"
             color="primary"
             onClick={(e) => {
@@ -263,7 +263,7 @@ function Users() {
             }}
           >
             <EditIcon fontSize="small" />
-          </IconButton>
+          </IconButton> */}
           <IconButton
             size="small"
             color={params.row?.status === "Active" ? "error" : "success"}

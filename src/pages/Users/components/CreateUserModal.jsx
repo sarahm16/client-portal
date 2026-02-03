@@ -142,7 +142,7 @@ const buildWelcomeEmail = (newUser, password) => {
 
 const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
   const { user } = useAuth();
-  const { isInternalAdmin } = useRole();
+  const { isInternalAdmin, isExternalAdmin } = useRole();
 
   console.log("isInternalAdmin()", isInternalAdmin());
 
@@ -150,7 +150,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
     name: "",
     email: "",
     phone: "",
-    role: "",
+    role: "Employee",
     client: null,
     status: "Active",
     password: "",
@@ -353,6 +353,25 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
                 ))}
               </TextField>
             )}
+
+            {isExternalAdmin() && (
+              <TextField
+                select
+                label="Role"
+                value={formData.role}
+                onChange={(e) => handleChange("role", e.target.value)}
+                onBlur={() => handleBlur("role")}
+                error={touched.role && !!errors.role}
+                helperText={touched.role && errors.role}
+                fullWidth
+                required={isExternalAdmin()}
+                variant="outlined"
+              >
+                <MenuItem value={"External Admin"}>External Admin</MenuItem>
+                <MenuItem value={"Employee"}>Employee</MenuItem>
+              </TextField>
+            )}
+
             {isInternalAdmin() && formData?.role !== "Internal Admin" && (
               <Autocomplete
                 options={clientsWithPortal}
