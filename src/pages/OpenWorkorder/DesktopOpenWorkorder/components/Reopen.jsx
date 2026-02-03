@@ -175,13 +175,18 @@ function Reopen() {
         reopenReason,
       );
       const recipients = generateEmailRecipients([
-        "sarah.carter@evergreenbrands.com",
+        workorder?.projectManager?.email, // Replace with PM
+      ]);
+
+      const bccRecipients = generateEmailRecipients([
+        "sarah.carter@evergreenbrands.com", // Replace with PM
       ]);
 
       await sendEmailFromHTML(
         `Work Order Reopened - ` + workorder.id,
         emailBody,
         recipients,
+        bccRecipients,
       );
 
       handleCloseModal();

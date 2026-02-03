@@ -171,14 +171,19 @@ function CancelWorkorder() {
       reason,
     );
 
-    const recipients = generateEmailRecipients([
-      "sarah.carter@evergreenbrands.com",
+    const bccRecipients = generateEmailRecipients([
+      "sarah.carter@evergreenbrands.com", // Replace with PM
+    ]);
+
+    const emailRecipients = generateEmailRecipients([
+      workorder?.projectManager?.email, // Replace with PM
     ]);
 
     await sendEmailFromHTML(
       `Work Order Cancelled - ` + workorder.id,
       emailBody,
-      recipients,
+      emailRecipients,
+      bccRecipients,
     );
 
     handleClose();

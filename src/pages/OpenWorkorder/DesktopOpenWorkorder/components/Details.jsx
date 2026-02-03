@@ -219,13 +219,18 @@ function WorkorderDetailsSection() {
     console.log("Email Body:", emailBody);
 
     const emailRecipients = generateEmailRecipients([
-      "sarah.carter@evergreenbrands.com",
+      workorder?.projectManager?.email,
+    ]);
+
+    const bccRecipients = generateEmailRecipients([
+      "sarah.carter@evergreenbrands.com", // Replace with PM
     ]);
 
     await sendEmailFromHTML(
       `Proposal ${approved ? "Approved" : "Denied"} - ` + workorder?.id,
       emailBody,
       emailRecipients,
+      bccRecipients,
     );
   };
 

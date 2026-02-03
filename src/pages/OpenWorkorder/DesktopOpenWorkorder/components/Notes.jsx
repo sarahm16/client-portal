@@ -212,13 +212,18 @@ function NotesSection() {
         newNote,
         priority,
       );
-      const emailRecipients = generateEmailRecipients([
+      const bccRecipients = generateEmailRecipients([
         "sarah.carter@evergreenbrands.com",
+      ]);
+
+      const emailRecipients = generateEmailRecipients([
+        workorder?.projectManager?.email, // Replace with PM
       ]);
       await sendEmailFromHTML(
         `New Note Added to Work Order - ` + workorder.id,
         emailBody,
         emailRecipients,
+        bccRecipients,
       );
       setNewNote("");
     } catch (error) {

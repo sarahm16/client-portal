@@ -329,13 +329,18 @@ function PricingSection() {
       );
 
       const emailRecipients = generateEmailRecipients([
-        "sarah.carter@evergreenbrands.com",
+        workorder?.projectManager?.email, // Replace with PM
+      ]);
+
+      const bccRecipients = generateEmailRecipients([
+        "sarah.carter@evergreenbrands.com", // Replace with PM
       ]);
 
       await sendEmailFromHTML(
         "NTE Increase Approved - " + workorder?.id,
         emailBody,
         emailRecipients,
+        bccRecipients,
       );
 
       setApproveOpen(false);
@@ -375,7 +380,7 @@ function PricingSection() {
         ],
       });
 
-      // Send notification email to operations team
+      // TODO: Send notification email to operations team
       const emailBody = generateEmailBody(
         "Denied", // Decision
         "denied", // Decision lowercase
@@ -388,13 +393,18 @@ function PricingSection() {
       );
 
       const emailRecipients = generateEmailRecipients([
-        "sarah.carter@evergreenbrands.com",
+        workorder?.projectManager?.email, // Replace with PM
+      ]);
+
+      const bccRecipients = generateEmailRecipients([
+        "sarah.carter@evergreenbrands.com", // Replace with PM
       ]);
 
       await sendEmailFromHTML(
         "NTE Increase Denied - " + workorder?.id,
         emailBody,
         emailRecipients,
+        bccRecipients,
       );
 
       setDenyOpen(false);

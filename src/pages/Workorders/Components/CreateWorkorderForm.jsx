@@ -322,15 +322,20 @@ function CreateWorkorderForm() {
 
       const emailBody = generateEmailBody(objToCreate);
       const emailRecipients = generateEmailRecipients([
-        "sarah.carter@evergreenbrands.com",
+        "netstreit@nationalfacilitycontractors.com",
         /*         'netstreit@nationalfacilitycontractors.com'
          */
+      ]);
+
+      const bccRecipients = generateEmailRecipients([
+        "sarah.carter@evergreenbrands.com", // Replace with PM
       ]);
 
       await sendEmailFromHTML(
         "New Work Order Created - " + objToCreate.id,
         emailBody,
         emailRecipients,
+        bccRecipients,
       );
 
       // Reset and close
