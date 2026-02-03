@@ -27,6 +27,7 @@ import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
 import { WorkordersContext } from "../WorkOrders";
 import { useNavigate } from "react-router-dom";
+import { mappedClientStatuses, clientStatusArray } from "../../../constants";
 
 // Mock data - replace with actual API call
 const mockWorkOrders = [
@@ -80,14 +81,6 @@ const mockWorkOrders = [
   },
 ];
 
-const statusColors = {
-  New: "warning",
-  Sourced: "info",
-  "In Progress": "primary",
-  Completed: "success",
-  Cancelled: "error",
-};
-
 const priorityColors = {
   "P-1": "error",
   "P-2": "warning",
@@ -97,10 +90,15 @@ const priorityColors = {
 
 const statusIcons = {
   New: PendingIcon,
+  Accepted: PendingIcon,
   Sourced: BuildCircleIcon,
   "In Progress": BuildCircleIcon,
   Completed: CheckCircleIcon,
   Cancelled: CancelIcon,
+  "Requires proposal": PendingIcon,
+  "Waiting approval": PendingIcon,
+  "Proposal Approved": CheckCircleIcon,
+  "Proposal Denied": CancelIcon,
 };
 
 const months = [
@@ -177,7 +175,14 @@ function CountTile({ status, count, color, Icon, onClick }) {
 
 function WorkOrderTile({ workOrder, onClick }) {
   const dueDate = new Date(workOrder.dueDate);
-  const StatusIcon = statusIcons[workOrder.status];
+  const clientStatus =
+    Object.keys(mappedClientStatuses)?.find((key) =>
+      mappedClientStatuses[key]?.opsStatuses.includes(workOrder.status),
+    ) || workOrder.status;
+  console.log("workOrder.status:", workOrder.status);
+  console.log("clientStatus:", clientStatus);
+  const StatusIcon = statusIcons[clientStatus];
+  console.log("StatusIcon:", StatusIcon);
 
   return (
     <Card
@@ -185,7 +190,7 @@ function WorkOrderTile({ workOrder, onClick }) {
         width: "100%",
         borderRadius: 2,
         borderLeft: (theme) =>
-          `4px solid ${theme.palette[statusColors[workOrder.status]].main}`,
+          `4px solid ${theme.palette[clientStatusArray[clientStatus]].main}`,
         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
         transition: "transform 0.2s, box-shadow 0.2s",
         "&:hover": {
@@ -228,7 +233,7 @@ function WorkOrderTile({ workOrder, onClick }) {
                     textAlign: "center",
                     lineHeight: 1.2,
                     color: (theme) =>
-                      theme.palette[statusColors[workOrder.status]].main,
+                      theme.palette[clientStatusArray[clientStatus]].main,
                   }}
                 >
                   {dueDate.getDate()}
@@ -266,9 +271,9 @@ function WorkOrderTile({ workOrder, onClick }) {
                   />
                   <Chip
                     icon={<StatusIcon />}
-                    label={workOrder.status}
+                    label={clientStatus}
                     size="small"
-                    color={statusColors[workOrder.status]}
+                    color={clientStatusArray[clientStatus]}
                     sx={{ height: 20, fontSize: "0.65rem", fontWeight: 600 }}
                   />
                 </Box>
@@ -280,7 +285,7 @@ function WorkOrderTile({ workOrder, onClick }) {
                   fontWeight: "bold",
                   textAlign: "left",
                   color: (theme) =>
-                    theme.palette[statusColors[workOrder.status]].main,
+                    theme.palette[clientStatusArray[clientStatus]].main,
                   mb: 0.5,
                 }}
               >
@@ -374,7 +379,7 @@ function MobileWorkOrders() {
         (wo) =>
           wo.status === "New" ||
           wo.status === "Sourced" ||
-          wo.status === "In Progress"
+          wo.status === "In Progress",
       );
     }
     return workorders.filter((wo) => wo.status === status);
@@ -401,19 +406,19 @@ function MobileWorkOrders() {
         (wo) =>
           wo.status === "New" ||
           wo.status === "Sourced" ||
-          wo.status === "In Progress"
+          wo.status === "In Progress",
       ),
-    [workorders]
+    [workorders],
   );
 
   const inProgressWorkOrders = useMemo(
     () => workorders.filter((wo) => wo.status === "In Progress"),
-    [workorders]
+    [workorders],
   );
 
   const completedWorkOrders = useMemo(
     () => workorders.filter((wo) => wo.status === "Completed"),
-    [workorders]
+    [workorders],
   );
 
   const handleClick = (newStatus) => {
