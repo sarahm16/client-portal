@@ -31,11 +31,123 @@ import { useAuth } from "../../../../auth/hooks/AuthContext";
 
 // Local Components
 import CardComponent from "./CardComponent";
+import { generateEmailRecipients } from "../../../../utilities/generateEmailRecipients";
+import { sendEmailFromHTML } from "../../../../api/microsoftApi";
 
 const priorityColors = {
   Low: "success",
   Medium: "warning",
   High: "error",
+};
+
+const priorityBadgeDetails = {
+  Low: { background: "#d1fae5", text: "#065f46", icon: "🟢" },
+  Medium: { background: "#fef3c7", text: "#92400e", icon: "🟡" },
+  High: { background: "#fee2e2", text: "#991b1b", icon: "🔴" },
+};
+
+const generateEmailBody = (id, client, store, newNote, priority) => {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Note Added to Work Order</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #0891b2; padding: 24px 32px;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">New Note Added</h1>
+            </td>
+          </tr>
+          
+          <!-- Body -->
+          <tr>
+            <td style="padding: 32px;">
+              <!-- Priority Badge - colors vary based on priority -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td style="background-color: ${priorityBadgeDetails[priority].background}; border-radius: 6px; padding: 12px 16px;">
+                    <span style="color: ${priorityBadgeDetails[priority].text}; font-size: 14px; font-weight: 600;">${priorityBadgeDetails[priority].icon} ${priority} Priority</span>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 0 0 24px 0; color: #374151; font-size: 16px; line-height: 1.5;">
+                A new note has been added to the following work order.
+              </p>
+              
+              <!-- Work Order Reference -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="50%" style="padding: 8px 0;">
+                          <span style="color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Work Order #</span>
+                          <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 600;">${id}</p>
+                        </td>
+                        <td width="50%" style="padding: 8px 0;">
+                          <span style="color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Client</span>
+                          <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 500;">${client}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding: 8px 0;">
+                          <span style="color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Store</span>
+                          <p style="margin: 4px 0 0 0; color: #111827; font-size: 15px; font-weight: 500;">${store}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Note Content -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0fdfa; border-radius: 8px; border-left: 4px solid #0891b2;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <span style="color: #0e7490; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Note</span>
+                    <p style="margin: 12px 0 0 0; color: #134e4a; font-size: 15px; line-height: 1.6;">${newNote}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 20px 32px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0; color: #6b7280; font-size: 13px; text-align: center;">
+                This is an automated notification from the Work Order Management System.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+<!--
+Template Variables:
+- {{id}}: Work order number
+- {{client}}: Client name
+- {{store}}: Store name/location
+- {{newNote}}: Content of the note
+- {{priority}}: Priority level (e.g., "High", "Medium", "Low")
+
+Priority Badge Colors:
+- High: background #fee2e2, text #991b1b, icon 🔴
+- Medium: background #fef3c7, text #92400e, icon 🟡
+- Low: background #d1fae5, text #065f46, icon 🟢
+-->`;
 };
 
 // Get initials from name
@@ -92,6 +204,22 @@ function NotesSection() {
       };
 
       await handleUpdateWorkorder(updates);
+
+      const emailBody = generateEmailBody(
+        workorder.id,
+        workorder?.client?.name,
+        workorder?.site?.name,
+        newNote,
+        priority,
+      );
+      const emailRecipients = generateEmailRecipients([
+        "sarah.carter@evergreenbrands.com",
+      ]);
+      await sendEmailFromHTML(
+        `New Note Added to Work Order - ` + workorder.id,
+        emailBody,
+        emailRecipients,
+      );
       setNewNote("");
     } catch (error) {
       console.error("Error submitting note:", error);
