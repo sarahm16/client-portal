@@ -8,7 +8,7 @@ export const getMicrosoftAccessToken = async () => {
       }/dynamicGetAuth`,
       {
         company: "NFC",
-      }
+      },
     );
     const accessToken = tokenResponse.data?.access_token;
 
@@ -31,7 +31,47 @@ export const sendEmailViaMicrosoft = async (emailData) => {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-      }
+      },
+    );
+
+    return emailResponse.data;
+  } catch (err) {
+    console.error("Error sending email via Microsoft Graph:", err);
+    throw new Error("Failed to send email via Microsoft Graph");
+  }
+};
+
+export const sendEmailFromHTML = async (
+  subject,
+  htmlBody,
+  toRecipients,
+  bccRecipients,
+) => {
+  try {
+    const accessToken = await getMicrosoftAccessToken();
+
+    const emailData = {
+      message: {
+        subject: subject,
+        body: {
+          contentType: "HTML",
+          content: htmlBody,
+        },
+        toRecipients: toRecipients,
+        bccRecipients: bccRecipients || [],
+      },
+      saveToSentItems: "true",
+    };
+
+    const emailResponse = await axios.post(
+      "https://graph.microsoft.com/v1.0/users/no-reply@nationalfacilitycontractors.com/sendMail",
+      emailData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     return emailResponse.data;
