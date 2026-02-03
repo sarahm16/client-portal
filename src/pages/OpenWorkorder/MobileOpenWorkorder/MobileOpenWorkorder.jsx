@@ -20,6 +20,10 @@ import Button from "@mui/material/Button";
 import Collapse from "@mui/material/Collapse";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import Fab from "@mui/material/Fab";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Avatar from "@mui/material/Avatar";
 
 // MUI Icons
 import LocationOn from "@mui/icons-material/LocationOn";
@@ -40,6 +44,13 @@ import ArrowBack from "@mui/icons-material/ArrowBack";
 import Phone from "@mui/icons-material/Phone";
 import Email from "@mui/icons-material/Email";
 import Add from "@mui/icons-material/Add";
+import Delete from "@mui/icons-material/Delete";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import Warning from "@mui/icons-material/Warning";
 
 // Context
 import { WorkorderContext } from "../OpenWorkorder";
@@ -54,18 +65,113 @@ import formatCurrency from "../../../utilities/formatCurrency";
 import { getItemFromAzure } from "../../../api/azureApi";
 import { useNavigate } from "react-router-dom";
 
+// Local Components
+import MobileImageUploader from "./components/MobileImageUploader";
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+const getInitials = (name) => {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const getFileName = (url) => {
+  try {
+    const path = new URL(url).pathname;
+    const raw = path.split("/").pop();
+    const withoutTimestamp = raw.replace(/^\d+_/, "");
+    return decodeURIComponent(withoutTimestamp) || "attachment";
+  } catch {
+    return "attachment";
+  }
+};
+
+const nteStatusColors = {
+  Pending: "warning",
+  Approved: "success",
+  Denied: "error",
+};
+
 // ============================================
 // SUB-COMPONENTS
 // ============================================
 
-// Tab Panel Component
+function AttachmentList({ urls }) {
+  if (!urls?.length) return null;
+
+  return (
+    <Box sx={{ mt: 1.5 }}>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 600,
+          color: "text.secondary",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+          fontSize: "0.65rem",
+        }}
+      >
+        Attachments
+      </Typography>
+      <Stack spacing={0.75} sx={{ mt: 0.75 }}>
+        {urls.map((url, i) => (
+          <Box
+            key={i}
+            component="a"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              p: 1,
+              bgcolor: "background.paper",
+              borderRadius: 1,
+              border: 1,
+              borderColor: "divider",
+              textDecoration: "none",
+              transition: "all 0.15s ease",
+              "&:active": {
+                borderColor: "primary.main",
+                bgcolor: "primary.50",
+              },
+            }}
+          >
+            <AttachFileIcon sx={{ fontSize: 16, color: "primary.main" }} />
+            <Typography
+              variant="caption"
+              sx={{
+                flex: 1,
+                fontWeight: 500,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                color: "text.primary",
+              }}
+            >
+              {getFileName(url)}
+            </Typography>
+            <OpenInNewIcon sx={{ fontSize: 14, color: "action.active" }} />
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <Box
       role="tabpanel"
       hidden={value !== index}
-      id={`mobile-tabpanel-${index}`}
-      aria-labelledby={`mobile-tab-${index}`}
       {...other}
       sx={{ height: "100%", overflow: "auto" }}
     >
@@ -74,7 +180,6 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-// Mobile Card Component
 const MobileCard = ({ children, title, icon, defaultExpanded = true }) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -133,7 +238,6 @@ const MobileCard = ({ children, title, icon, defaultExpanded = true }) => {
   );
 };
 
-// Info Row Component
 const InfoRow = ({ label, value, icon }) => (
   <Box
     sx={{
@@ -157,8 +261,7 @@ const InfoRow = ({ label, value, icon }) => (
   </Box>
 );
 
-// Lazy Loading Image Component for Mobile
-function MobileLazyImage({ src, alt, onClick }) {
+function MobileLazyImage({ src, alt, onClick, onDelete }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
@@ -219,22 +322,37 @@ function MobileLazyImage({ src, alt, onClick }) {
             opacity: 0,
             transition: "opacity 0.2s ease",
             borderRadius: 1.5,
-            "&:active": {
-              opacity: 1,
-            },
+            "&:active": { opacity: 1 },
           }}
         >
           <ZoomIn sx={{ color: "white", fontSize: 32 }} />
+          {onDelete && (
+            <IconButton
+              size="small"
+              sx={{
+                position: "absolute",
+                top: 4,
+                right: 4,
+                bgcolor: "rgba(255, 255, 255, 0.9)",
+                color: "error.main",
+                "&:active": { bgcolor: "white" },
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(src);
+              }}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          )}
         </Box>
       )}
     </Box>
   );
 }
 
-// Image Viewer Modal
 function ImageViewerModal({ image, onClose }) {
   if (!image) return null;
-
   return (
     <Box
       onClick={onClose}
@@ -267,11 +385,7 @@ function ImageViewerModal({ image, onClose }) {
       <img
         src={image}
         alt="Full size"
-        style={{
-          maxWidth: "100%",
-          maxHeight: "85vh",
-          objectFit: "contain",
-        }}
+        style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain" }}
       />
       <Typography
         variant="caption"
@@ -283,11 +397,90 @@ function ImageViewerModal({ image, onClose }) {
   );
 }
 
+function DeleteConfirmationModal({ open, onClose, onConfirm, imageUrl }) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    await onConfirm(imageUrl);
+    setIsDeleting(false);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={isDeleting ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{ sx: { borderRadius: 2, m: 2 } }}
+    >
+      <DialogContent sx={{ pt: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+          <Box
+            sx={{
+              bgcolor: "error.50",
+              p: 1,
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Warning color="error" />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Delete Image?
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Are you sure you want to delete this image? This action cannot be
+          undone.
+        </Typography>
+        {imageUrl && (
+          <Box
+            sx={{
+              borderRadius: 1.5,
+              overflow: "hidden",
+              border: 1,
+              borderColor: "divider",
+            }}
+          >
+            <img
+              src={imageUrl}
+              alt="Image to delete"
+              style={{ width: "100%", maxHeight: 200, objectFit: "cover" }}
+            />
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+        <Button
+          onClick={onClose}
+          disabled={isDeleting}
+          variant="outlined"
+          fullWidth
+          sx={{ borderRadius: 1.5 }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          disabled={isDeleting}
+          variant="contained"
+          color="error"
+          fullWidth
+          sx={{ borderRadius: 1.5 }}
+        >
+          {isDeleting ? "Deleting..." : "Delete"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 // ============================================
 // TAB CONTENT COMPONENTS
 // ============================================
 
-// Details Tab Content
 function DetailsTabContent() {
   const { workorder } = useContext(WorkorderContext);
   const [site, setSite] = useState(null);
@@ -296,8 +489,8 @@ function DetailsTabContent() {
     const fetchSite = async () => {
       if (workorder?.site?.id) {
         try {
-          const response = await getItemFromAzure("sites", workorder.site.id);
-          setSite(response);
+          const siteData = await getItemFromAzure("sites", workorder.site.id);
+          setSite(siteData);
         } catch (error) {
           console.error("Error fetching site:", error);
         }
@@ -306,138 +499,561 @@ function DetailsTabContent() {
     fetchSite();
   }, [workorder?.site?.id]);
 
-  const getStatusConfig = (status) => {
-    const configs = {
-      New: { color: "info", icon: <Schedule fontSize="small" /> },
-      "In Progress": {
-        color: "warning",
-        icon: <BuildCircle fontSize="small" />,
-      },
-      Completed: { color: "success", icon: <CheckCircle fontSize="small" /> },
-      Cancelled: { color: "error", icon: null },
-    };
-    return configs[status] || { color: "default", icon: null };
-  };
-
-  const statusConfig = getStatusConfig(workorder?.status);
-
   return (
     <Box>
-      {/* Status & Priority Card */}
       <MobileCard
-        title="Status"
+        title="Work Order Details"
         icon={<Description color="primary" fontSize="small" />}
       >
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
-          <Chip
-            icon={statusConfig.icon}
-            label={workorder?.status || "Unknown"}
-            color={statusConfig.color}
-            size="medium"
-            sx={{ fontWeight: 600 }}
+        <Stack spacing={0}>
+          <InfoRow
+            label="Status"
+            value={
+              <Chip
+                label={workorder?.status}
+                size="small"
+                color={
+                  workorder?.status === "Completed"
+                    ? "success"
+                    : workorder?.status === "In Progress"
+                      ? "warning"
+                      : "default"
+                }
+                sx={{ fontWeight: 600 }}
+              />
+            }
           />
-          {workorder?.priority && (
-            <Chip
-              label={`Priority: ${workorder.priority}`}
-              color="warning"
-              variant="outlined"
-              size="medium"
-              sx={{ fontWeight: 600 }}
-            />
+          <Divider />
+          <InfoRow
+            label="Type"
+            value={workorder?.workorderType || "N/A"}
+            icon={<BuildCircle fontSize="small" />}
+          />
+          <Divider />
+          <InfoRow
+            label="Created"
+            value={
+              workorder?.createdDate
+                ? dayjs(workorder.createdDate).format("MMM D, YYYY")
+                : "N/A"
+            }
+            icon={<CalendarMonth fontSize="small" />}
+          />
+          {workorder?.dueDate && (
+            <>
+              <Divider />
+              <InfoRow
+                label="Due Date"
+                value={dayjs(workorder.dueDate).format("MMM D, YYYY")}
+                icon={<Schedule fontSize="small" />}
+              />
+            </>
           )}
-        </Box>
-
-        <Divider sx={{ my: 2 }} />
-
-        <InfoRow
-          label="Service Type"
-          value={workorder?.service || "Not specified"}
-          icon={<BuildCircle fontSize="small" />}
-        />
-        <InfoRow
-          label="Due Date"
-          value={
-            workorder?.dueDate
-              ? dayjs(workorder.dueDate).format("MMM D, YYYY")
-              : "Not set"
-          }
-          icon={<CalendarMonth fontSize="small" />}
-        />
-        <InfoRow
-          label="Created"
-          value={
-            workorder?.createdDate
-              ? dayjs(workorder.createdDate).format("MMM D, YYYY")
-              : "Unknown"
-          }
-          icon={<Person fontSize="small" />}
-        />
-      </MobileCard>
-
-      {/* Site Information Card */}
-      <MobileCard
-        title="Site Info"
-        icon={<LocationOn color="success" fontSize="small" />}
-      >
-        <Box sx={{ p: 1.5, bgcolor: "grey.50", borderRadius: 1.5, mb: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            Location
-          </Typography>
-          <Typography variant="body1" fontWeight={700}>
-            {workorder?.site?.name || workorder?.site?.store}
-          </Typography>
-        </Box>
-
-        {site && (
+          {workorder?.completedDate && (
+            <>
+              <Divider />
+              <InfoRow
+                label="Completed"
+                value={dayjs(workorder.completedDate).format("MMM D, YYYY")}
+                icon={<CheckCircle fontSize="small" />}
+              />
+            </>
+          )}
+        </Stack>
+        {workorder?.description && (
           <>
-            <InfoRow
-              label="Address"
-              value={`${site.address}, ${site.city}, ${site.state} ${site.zipcode}`}
-            />
-            <InfoRow
-              label="Contact"
-              value={site?.contact?.name || "N/A"}
-              icon={<Person fontSize="small" />}
-            />
-            {site?.contact?.phone && (
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  mt: 2,
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<Phone />}
-                  href={`tel:${site.contact.phone}`}
-                  sx={{ flex: 1, textTransform: "none" }}
-                >
-                  Call
-                </Button>
-                {site?.contact?.email && (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<Email />}
-                    href={`mailto:${site.contact.email}`}
-                    sx={{ flex: 1, textTransform: "none" }}
-                  >
-                    Email
-                  </Button>
-                )}
-              </Box>
-            )}
+            <Divider sx={{ my: 2 }} />
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              color="text.secondary"
+            >
+              SCOPE OF WORK
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 1,
+                p: 1.5,
+                bgcolor: "grey.50",
+                borderRadius: 1.5,
+                lineHeight: 1.6,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {workorder.description}
+            </Typography>
           </>
         )}
       </MobileCard>
 
-      {/* Pricing Card */}
       <MobileCard
-        title="Pricing & Scope"
+        title="Site Information"
+        icon={<LocationOn color="secondary" fontSize="small" />}
+      >
+        <Stack spacing={0}>
+          <InfoRow
+            label="Store"
+            value={site?.store || workorder?.site?.store || "N/A"}
+          />
+          <Divider />
+          <InfoRow label="Address" value={site?.address || "N/A"} />
+          {site?.city && (
+            <>
+              <Divider />
+              <InfoRow
+                label="City"
+                value={`${site.city}, ${site.state} ${site.zip || ""}`}
+              />
+            </>
+          )}
+        </Stack>
+        {site &&
+          (site.contact?.name ||
+            site.contact?.phone ||
+            site.contact?.email) && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography
+                variant="caption"
+                fontWeight={600}
+                color="text.secondary"
+              >
+                SITE CONTACT
+              </Typography>
+              <Box sx={{ mt: 1 }}>
+                {site.contact?.name && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    <Person fontSize="small" color="action" />
+                    <Typography variant="body2">{site.contact.name}</Typography>
+                  </Box>
+                )}
+                {site.contact?.phone && (
+                  <Box
+                    component="a"
+                    href={`tel:${site.contact.phone}`}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1,
+                      textDecoration: "none",
+                      color: "primary.main",
+                    }}
+                  >
+                    <Phone fontSize="small" />
+                    <Typography variant="body2">
+                      {site.contact.phone}
+                    </Typography>
+                  </Box>
+                )}
+                {site.contact?.email && (
+                  <Box
+                    component="a"
+                    href={`mailto:${site.contact.email}`}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      textDecoration: "none",
+                      color: "primary.main",
+                    }}
+                  >
+                    <Email fontSize="small" />
+                    <Typography variant="body2">
+                      {site.contact.email}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </>
+          )}
+      </MobileCard>
+
+      <PricingCard />
+    </Box>
+  );
+}
+
+function PricingCard() {
+  const { workorder, handleUpdateWorkorder } = useContext(WorkorderContext);
+  const nteRequests = workorder?.nteRequests || [];
+  const activity = workorder?.activity || [];
+  const pendingClientRequests = nteRequests.filter(
+    (req) => !req.clientResponse && req.sentToClient,
+  );
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [denyOpen, setDenyOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [clientDenyReason, setClientDenyReason] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleApprove = async () => {
+    setIsProcessing(true);
+    try {
+      const updatedRequests = nteRequests.map((r) =>
+        r.date === selectedRequest.date
+          ? {
+              ...r,
+              clientApprovedDate: new Date().getTime(),
+              clientResponse: "Approved",
+            }
+          : r,
+      );
+      await handleUpdateWorkorder({
+        clientPrice: Number(selectedRequest.clientAmount),
+        vendorPrice: Number(selectedRequest?.amount),
+        nteRequests: updatedRequests,
+        activity: [
+          {
+            date: new Date().getTime(),
+            user: "Client",
+            action: `Client approved NTE increase to ${formatCurrency(Number(selectedRequest.clientAmount))}`,
+          },
+          ...activity,
+        ],
+      });
+      setApproveOpen(false);
+      setSelectedRequest(null);
+    } catch (error) {
+      console.error("Error approving NTE:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeny = async () => {
+    setIsProcessing(true);
+    try {
+      const updatedRequests = nteRequests.map((r) =>
+        r.date === selectedRequest.date
+          ? {
+              ...r,
+              clientDeniedDate: new Date().getTime(),
+              clientResponse: "Denied",
+              clientDenyReason: clientDenyReason,
+            }
+          : r,
+      );
+      await handleUpdateWorkorder({
+        nteRequests: updatedRequests,
+        activity: [
+          {
+            date: new Date().getTime(),
+            user: "Client",
+            action: `Client denied NTE increase request for ${formatCurrency(Number(selectedRequest.clientAmount))}`,
+          },
+          ...activity,
+        ],
+      });
+      setDenyOpen(false);
+      setSelectedRequest(null);
+      setClientDenyReason("");
+    } catch (error) {
+      console.error("Error denying NTE:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <>
+      <Dialog
+        open={approveOpen}
+        onClose={() => setApproveOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogContent sx={{ pt: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Box
+              sx={{
+                bgcolor: "success.50",
+                p: 1,
+                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <CheckCircleIcon color="success" />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Approve NTE Increase
+            </Typography>
+          </Box>
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 1.5 }}>
+            You are about to approve an increase to the Not To Exceed (NTE)
+            amount for this work order.
+          </Alert>
+          <Box sx={{ p: 2, bgcolor: "grey.50", borderRadius: 1.5, mb: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              Current NTE Amount
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {formatCurrency(workorder?.clientPrice)}
+            </Typography>
+            <Divider sx={{ my: 1.5 }} />
+            <Typography variant="caption" color="text.secondary">
+              New NTE Amount
+            </Typography>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 700, color: "success.main" }}
+            >
+              {formatCurrency(selectedRequest?.clientAmount)}
+            </Typography>
+          </Box>
+          {selectedRequest?.customReason && (
+            <Box
+              sx={{
+                p: 1.5,
+                bgcolor: "warning.50",
+                borderRadius: 1.5,
+                border: 1,
+                borderColor: "warning.200",
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 600, color: "warning.dark" }}
+              >
+                Reason for Increase
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ mt: 0.5, color: "warning.dark" }}
+              >
+                {selectedRequest.customReason}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setApproveOpen(false)}
+            variant="outlined"
+            fullWidth
+            disabled={isProcessing}
+            sx={{ borderRadius: 1.5 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleApprove}
+            variant="contained"
+            color="success"
+            fullWidth
+            disabled={isProcessing}
+            sx={{ borderRadius: 1.5 }}
+          >
+            {isProcessing ? "Processing..." : "Approve"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={denyOpen}
+        onClose={() => setDenyOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogContent sx={{ pt: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+            <Box
+              sx={{
+                bgcolor: "error.50",
+                p: 1,
+                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <CancelIcon color="error" />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Deny NTE Increase
+            </Typography>
+          </Box>
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: 1.5 }}>
+            Please provide a reason for denying this NTE increase request.
+          </Alert>
+          <Box sx={{ p: 1.5, bgcolor: "grey.50", borderRadius: 1.5, mb: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              Requested NTE Amount
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5 }}>
+              {formatCurrency(selectedRequest?.clientAmount)}
+            </Typography>
+          </Box>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Please explain why you are denying this request..."
+            value={clientDenyReason}
+            onChange={(e) => setClientDenyReason(e.target.value)}
+            variant="outlined"
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => {
+              setDenyOpen(false);
+              setClientDenyReason("");
+            }}
+            variant="outlined"
+            fullWidth
+            disabled={isProcessing}
+            sx={{ borderRadius: 1.5 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeny}
+            variant="contained"
+            color="error"
+            fullWidth
+            disabled={isProcessing || !clientDenyReason.trim()}
+            sx={{ borderRadius: 1.5 }}
+          >
+            {isProcessing ? "Processing..." : "Deny"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <MobileCard
+        title="Pricing & NTE"
         icon={<AttachMoney color="warning" fontSize="small" />}
       >
+        {pendingClientRequests.length > 0 && (
+          <Alert
+            severity="warning"
+            sx={{ mb: 2, borderRadius: 1.5 }}
+            icon={<InfoOutlinedIcon />}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Action Required: NTE Increase Request
+            </Typography>
+            <Typography variant="caption">
+              The vendor has requested an increase. Please review and respond.
+            </Typography>
+          </Alert>
+        )}
+
+        {pendingClientRequests.map((request) => (
+          <Box
+            key={request.date}
+            sx={{
+              p: 2,
+              mb: 2,
+              bgcolor: "warning.50",
+              border: 2,
+              borderColor: "warning.main",
+              borderRadius: 1.5,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                mb: 1.5,
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 600, color: "warning.dark" }}
+                >
+                  NTE Increase Request
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 700, color: "warning.dark" }}
+                >
+                  {formatCurrency(request.clientAmount)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Current: {formatCurrency(workorder?.clientPrice)} | +
+                  {formatCurrency(
+                    request.clientAmount - workorder?.clientPrice,
+                  )}
+                </Typography>
+              </Box>
+              <Chip
+                label="Pending"
+                color="warning"
+                size="small"
+                sx={{ fontWeight: 600 }}
+              />
+            </Box>
+            <Divider sx={{ my: 1.5 }} />
+            {request.customReason && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 600, color: "warning.dark" }}
+                >
+                  Reason
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ mt: 0.5, color: "warning.dark" }}
+                >
+                  {request.customReason}
+                </Typography>
+              </Box>
+            )}
+            <AttachmentList urls={request.attachments} />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 1.5, mb: 1.5 }}
+            >
+              Submitted{" "}
+              {new Date(request.sentToClientDate).toLocaleDateString()} by{" "}
+              {request.sentToClientBy}
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="success"
+                size="small"
+                onClick={() => {
+                  setSelectedRequest(request);
+                  setApproveOpen(true);
+                }}
+                sx={{ borderRadius: 1.5 }}
+              >
+                Approve
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => {
+                  setSelectedRequest(request);
+                  setDenyOpen(true);
+                }}
+                sx={{ borderRadius: 1.5 }}
+              >
+                Deny
+              </Button>
+            </Stack>
+          </Box>
+        ))}
+
         <Box
           sx={{
             p: 2,
@@ -445,96 +1061,191 @@ function DetailsTabContent() {
             borderRadius: 1.5,
             border: 2,
             borderColor: "primary.200",
-            mb: 2,
-            textAlign: "center",
           }}
         >
-          <Typography variant="caption" fontWeight={600} color="primary.dark">
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 600, color: "primary.dark" }}
+          >
             Not To Exceed (NTE)
           </Typography>
-          <Typography variant="h5" fontWeight={700} color="primary.dark">
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 700, color: "primary.dark", mt: 0.5 }}
+          >
             {workorder?.clientPrice
-              ? `${formatCurrency(workorder.clientPrice)} ${
-                  workorder?.currency || "USD"
-                }`
+              ? formatCurrency(workorder.clientPrice)
               : "Not specified"}
           </Typography>
         </Box>
 
-        <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-          Scope of Work
-        </Typography>
-        <Box
-          sx={{
-            p: 1.5,
-            bgcolor: "grey.50",
-            borderRadius: 1.5,
-            maxHeight: 200,
-            overflow: "auto",
-          }}
-        >
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ lineHeight: 1.6 }}
-          >
-            {workorder?.description || "No description provided"}
-          </Typography>
-        </Box>
+        {nteRequests.filter((req) => req.clientResponse).length > 0 && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              color="text.secondary"
+            >
+              NTE REQUEST HISTORY
+            </Typography>
+            <Stack spacing={1} sx={{ mt: 1 }}>
+              {nteRequests
+                .filter((req) => req.clientResponse)
+                .map((request) => (
+                  <Box
+                    key={request.date}
+                    sx={{
+                      p: 1.5,
+                      bgcolor:
+                        request.clientResponse === "Approved"
+                          ? "success.50"
+                          : "error.50",
+                      border: 1,
+                      borderColor:
+                        request.clientResponse === "Approved"
+                          ? "success.main"
+                          : "error.main",
+                      borderRadius: 1.5,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight={600}>
+                        {formatCurrency(request.clientAmount)}
+                      </Typography>
+                      <Chip
+                        label={request.clientResponse}
+                        color={nteStatusColors[request.clientResponse]}
+                        size="small"
+                        sx={{ fontSize: "0.7rem" }}
+                      />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(
+                        request.clientApprovedDate || request.clientDeniedDate,
+                      ).toLocaleDateString()}
+                    </Typography>
+                    <AttachmentList urls={request.attachments} />
+                  </Box>
+                ))}
+            </Stack>
+          </>
+        )}
       </MobileCard>
-    </Box>
+    </>
   );
 }
 
-// Photos Tab Content
 function PhotosTabContent() {
-  const { workorder } = useContext(WorkorderContext);
-  const [selectedImage, setSelectedImage] = useState(null);
-
+  const { workorder, handleUpdateWorkorder } = useContext(WorkorderContext);
+  const { user } = useAuth();
   const initialImages = workorder?.images || [];
-  const afterImages = workorder?.vendorUpdates?.afterImages || [];
+  const afterImages = workorder?.afterImages || [];
+  const activity = workorder?.activity || [];
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imageToRemove, setImageToRemove] = useState(null);
+  const [showAllInitial, setShowAllInitial] = useState(false);
+  const [showAllAfter, setShowAllAfter] = useState(false);
+
+  const INITIAL_DISPLAY_COUNT = 4;
+  const displayInitialImages = showAllInitial
+    ? initialImages
+    : initialImages.slice(0, INITIAL_DISPLAY_COUNT);
+  const displayAfterImages = showAllAfter
+    ? afterImages
+    : afterImages.slice(0, INITIAL_DISPLAY_COUNT);
+  const hasMoreInitial = initialImages.length > INITIAL_DISPLAY_COUNT;
+  const hasMoreAfter = afterImages.length > INITIAL_DISPLAY_COUNT;
+
+  const handleRemoveImage = async (imageUrl) => {
+    try {
+      const isInitial = initialImages.includes(imageUrl);
+      const updates = {
+        [isInitial ? "images" : "afterImages"]: (isInitial
+          ? initialImages
+          : afterImages
+        ).filter((img) => img !== imageUrl),
+        activity: [
+          {
+            date: new Date().getTime(),
+            user: user?.name || "Client",
+            action: `Removed ${isInitial ? "an initial" : "a completion"} photo`,
+          },
+          ...activity,
+        ],
+      };
+      await handleUpdateWorkorder(updates);
+      setImageToRemove(null);
+    } catch (error) {
+      console.error("Error removing image:", error);
+    }
+  };
 
   return (
-    <Box>
-      {/* Initial Photos */}
+    <Box sx={{ pb: 2 }}>
       <MobileCard
-        title={`Before Photos (${initialImages.length})`}
+        title="Initial Photos"
         icon={<Image color="secondary" fontSize="small" />}
-        defaultExpanded={initialImages.length > 0}
+        defaultExpanded={true}
       >
         {initialImages.length === 0 ? (
-          <Alert severity="info" sx={{ borderRadius: 1.5 }}>
-            No initial photos uploaded
+          <Alert severity="info" sx={{ borderRadius: 1.5, mb: 2 }}>
+            No initial photos uploaded yet.
           </Alert>
         ) : (
-          <ImageList cols={2} gap={8}>
-            {initialImages.map((image, index) => (
-              <ImageListItem key={index}>
-                <MobileLazyImage
-                  src={image?.split("?sp=")[0]}
-                  alt={`Initial photo ${index + 1}`}
-                  onClick={() => setSelectedImage(image)}
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
+          <>
+            <ImageList cols={2} gap={8}>
+              {displayInitialImages.map((image, index) => (
+                <ImageListItem
+                  key={index}
+                  sx={{ borderRadius: 1.5, overflow: "hidden" }}
+                >
+                  <MobileLazyImage
+                    src={image}
+                    alt={`Initial photo ${index + 1}`}
+                    onClick={() => setSelectedImage(image)}
+                    onDelete={setImageToRemove}
+                  />
+                </ImageListItem>
+              ))}
+            </ImageList>
+            {hasMoreInitial && (
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                onClick={() => setShowAllInitial(!showAllInitial)}
+                sx={{ mt: 1.5, borderRadius: 1.5 }}
+              >
+                {showAllInitial
+                  ? "Show Less"
+                  : `Show ${initialImages.length - INITIAL_DISPLAY_COUNT} More`}
+              </Button>
+            )}
+          </>
         )}
+        <MobileImageUploader />
       </MobileCard>
 
-      {/* After Photos */}
-      <MobileCard
-        title={`After Photos (${afterImages.length})`}
-        icon={<Image color="info" fontSize="small" />}
-        defaultExpanded={afterImages.length > 0}
-      >
-        {afterImages.length === 0 ? (
-          <Alert severity="info" sx={{ borderRadius: 1.5 }}>
-            No completion photos available yet
-          </Alert>
-        ) : (
+      {afterImages.length > 0 && (
+        <MobileCard
+          title="Completion Photos"
+          icon={<Image color="success" fontSize="small" />}
+          defaultExpanded={true}
+        >
           <ImageList cols={2} gap={8}>
-            {afterImages.map((image, index) => (
-              <ImageListItem key={index}>
+            {displayAfterImages.map((image, index) => (
+              <ImageListItem
+                key={index}
+                sx={{ borderRadius: 1.5, overflow: "hidden" }}
+              >
                 <MobileLazyImage
                   src={image}
                   alt={`Completion photo ${index + 1}`}
@@ -543,31 +1254,46 @@ function PhotosTabContent() {
               </ImageListItem>
             ))}
           </ImageList>
-        )}
-      </MobileCard>
+          {hasMoreAfter && (
+            <Button
+              fullWidth
+              variant="outlined"
+              size="small"
+              onClick={() => setShowAllAfter(!showAllAfter)}
+              sx={{ mt: 1.5, borderRadius: 1.5 }}
+            >
+              {showAllAfter
+                ? "Show Less"
+                : `Show ${afterImages.length - INITIAL_DISPLAY_COUNT} More`}
+            </Button>
+          )}
+        </MobileCard>
+      )}
 
-      {/* Image Viewer Modal */}
       <ImageViewerModal
         image={selectedImage}
         onClose={() => setSelectedImage(null)}
+      />
+      <DeleteConfirmationModal
+        open={!!imageToRemove}
+        onClose={() => setImageToRemove(null)}
+        onConfirm={handleRemoveImage}
+        imageUrl={imageToRemove}
       />
     </Box>
   );
 }
 
-// Notes Tab Content
 function NotesTabContent() {
   const { workorder, handleUpdateWorkorder } = useContext(WorkorderContext);
   const { user } = useAuth();
-  const [newNote, setNewNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-
   const notes = workorder?.clientNotes || [];
+  const [newNote, setNewNote] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmitNote = async () => {
     if (!newNote.trim()) return;
-
     setSubmitting(true);
     try {
       const noteObj = {
@@ -575,8 +1301,7 @@ function NotesTabContent() {
         user: user?.name || "Client",
         date: new Date().getTime(),
       };
-
-      const updates = {
+      await handleUpdateWorkorder({
         clientNotes: [noteObj, ...notes],
         activity: [
           {
@@ -586,9 +1311,7 @@ function NotesTabContent() {
           },
           ...(workorder.activity || []),
         ],
-      };
-
-      await handleUpdateWorkorder(updates);
+      });
       setNewNote("");
       setShowForm(false);
     } catch (error) {
@@ -601,74 +1324,78 @@ function NotesTabContent() {
 
   return (
     <Box sx={{ pb: 10 }}>
-      {/* Notes List */}
       {notes.length === 0 ? (
-        <Alert severity="info" sx={{ borderRadius: 2, mb: 2 }}>
+        <Alert severity="info" sx={{ borderRadius: 1.5, mb: 2 }}>
           No notes yet. Tap the + button to start a conversation.
         </Alert>
       ) : (
         <Stack spacing={2}>
-          {notes.map((note, index) => (
-            <Paper
-              key={index}
-              elevation={0}
-              sx={{
-                border: 1,
-                borderColor:
-                  note.user === user?.name ? "primary.300" : "divider",
-                borderRadius: 2,
-                overflow: "hidden",
-              }}
-            >
-              <Box
+          {notes.map((note, index) => {
+            const isCurrentUser = note.user === user?.name;
+            return (
+              <Paper
+                key={index}
+                elevation={0}
                 sx={{
-                  px: 2,
-                  py: 1.5,
-                  bgcolor: note.user === user?.name ? "primary.50" : "grey.50",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  border: 1,
+                  borderColor: isCurrentUser ? "primary.300" : "divider",
+                  borderRadius: 1.5,
+                  overflow: "hidden",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Person fontSize="small" color="action" />
-                  <Typography variant="body2" fontWeight={700}>
-                    {note.user}
+                <Box
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    bgcolor: isCurrentUser ? "primary.50" : "grey.50",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: isCurrentUser ? "primary.main" : "grey.400",
+                        width: 28,
+                        height: 28,
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {getInitials(note.user)}
+                    </Avatar>
+                    <Typography variant="body2" fontWeight={700}>
+                      {note.user}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {dayjs(note.date).format("MMM D, h:mm A")}
                   </Typography>
                 </Box>
-                <Typography variant="caption" color="text.secondary">
-                  {dayjs(note.date).format("MMM D, h:mm A")}
-                </Typography>
-              </Box>
-              <Box sx={{ p: 2 }}>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ lineHeight: 1.6 }}
-                >
-                  {note.body}
-                </Typography>
-              </Box>
-            </Paper>
-          ))}
+                <Box sx={{ p: 2 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ lineHeight: 1.6, whiteSpace: "pre-wrap" }}
+                  >
+                    {note.body}
+                  </Typography>
+                </Box>
+              </Paper>
+            );
+          })}
         </Stack>
       )}
 
-      {/* Floating Action Button */}
       <Fab
         color="primary"
         onClick={() => setShowForm(true)}
-        sx={{
-          position: "fixed",
-          bottom: 80,
-          right: 16,
-          zIndex: 1000,
-        }}
+        sx={{ position: "fixed", bottom: 80, right: 16, zIndex: 1000 }}
       >
         <Add />
       </Fab>
 
-      {/* Note Form Drawer */}
       <SwipeableDrawer
         anchor="bottom"
         open={showForm}
@@ -703,19 +1430,14 @@ function NotesTabContent() {
           placeholder="Ask a question or share an update..."
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
-          sx={{
-            mb: 2,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-            },
-          }}
+          sx={{ mb: 2, "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
         />
         <Stack direction="row" spacing={2}>
           <Button
             variant="outlined"
             fullWidth
             onClick={() => setShowForm(false)}
-            sx={{ borderRadius: 2, py: 1.5 }}
+            sx={{ borderRadius: 1.5, py: 1.5 }}
           >
             Cancel
           </Button>
@@ -724,7 +1446,7 @@ function NotesTabContent() {
             fullWidth
             onClick={handleSubmitNote}
             disabled={!newNote.trim() || submitting}
-            sx={{ borderRadius: 2, py: 1.5 }}
+            sx={{ borderRadius: 1.5, py: 1.5 }}
           >
             {submitting ? "Sending..." : "Send"}
           </Button>
@@ -774,7 +1496,6 @@ function MobileOpenWorkorder() {
         bgcolor: "grey.50",
       }}
     >
-      {/* Sticky Header */}
       <Paper
         elevation={2}
         sx={{
@@ -785,7 +1506,6 @@ function MobileOpenWorkorder() {
           bgcolor: "white",
         }}
       >
-        {/* Top Bar */}
         <Box sx={{ px: 2, py: 1.5 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
             <IconButton onClick={handleGoBack} size="small" edge="start">
@@ -801,7 +1521,6 @@ function MobileOpenWorkorder() {
               sx={{ fontWeight: 600 }}
             />
           </Box>
-
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             <Chip
               icon={<LocationOn fontSize="small" />}
@@ -817,8 +1536,6 @@ function MobileOpenWorkorder() {
             />
           </Box>
         </Box>
-
-        {/* Tabs */}
         <Tabs
           value={activeTab}
           onChange={(e, newValue) => setActiveTab(newValue)}
@@ -851,7 +1568,6 @@ function MobileOpenWorkorder() {
         </Tabs>
       </Paper>
 
-      {/* Tab Content */}
       <Box sx={{ flex: 1, overflow: "auto" }}>
         <TabPanel value={activeTab} index={0}>
           <DetailsTabContent />
