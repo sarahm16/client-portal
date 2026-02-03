@@ -32,16 +32,6 @@ import formatCurrency from "../../../../utilities/formatCurrency";
 import { generateEmailRecipients } from "../../../../utilities/generateEmailRecipients";
 import { sendEmailFromHTML } from "../../../../api/microsoftApi";
 
-const emailRecipients = generateEmailRecipients([
-  "sarah.carter@evergreenbrands.com",
-]);
-
-await sendEmailFromHTML(
-  "NTE Increase Approved - " + workorder?.id,
-  emailBody,
-  emailRecipients,
-);
-
 const generateEmailBody = (
   decision,
   decisionLower,
