@@ -175,7 +175,8 @@ function Reopen() {
         reopenReason,
       );
       const recipients = generateEmailRecipients([
-        workorder?.projectManager?.email, // Replace with PM
+        workorder?.projectManager?.email ||
+          "netstreit@nationalfacilitycontractors.com",
       ]);
 
       const bccRecipients = generateEmailRecipients([

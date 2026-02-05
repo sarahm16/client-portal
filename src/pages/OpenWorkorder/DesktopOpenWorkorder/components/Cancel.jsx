@@ -176,7 +176,8 @@ function CancelWorkorder() {
     ]);
 
     const emailRecipients = generateEmailRecipients([
-      workorder?.projectManager?.email, // Replace with PM
+      workorder?.projectManager?.email ||
+        "netstreit@nationalfacilitycontractors.com",
     ]);
 
     await sendEmailFromHTML(

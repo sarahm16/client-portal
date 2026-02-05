@@ -219,7 +219,8 @@ function WorkorderDetailsSection() {
     console.log("Email Body:", emailBody);
 
     const emailRecipients = generateEmailRecipients([
-      workorder?.projectManager?.email,
+      workorder?.projectManager?.email ||
+        "netstreit@nationalfacilitycontractors.com",
     ]);
 
     const bccRecipients = generateEmailRecipients([

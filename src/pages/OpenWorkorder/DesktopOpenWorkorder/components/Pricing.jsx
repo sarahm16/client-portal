@@ -329,7 +329,8 @@ function PricingSection() {
       );
 
       const emailRecipients = generateEmailRecipients([
-        workorder?.projectManager?.email, // Replace with PM
+        workorder?.projectManager?.email ||
+          "netstreit@nationalfacilitycontractors.com",
       ]);
 
       const bccRecipients = generateEmailRecipients([
@@ -393,7 +394,8 @@ function PricingSection() {
       );
 
       const emailRecipients = generateEmailRecipients([
-        workorder?.projectManager?.email, // Replace with PM
+        workorder?.projectManager?.email ||
+          "netstreit@nationalfacilitycontractors.com",
       ]);
 
       const bccRecipients = generateEmailRecipients([
