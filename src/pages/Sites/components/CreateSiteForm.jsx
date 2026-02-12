@@ -139,6 +139,7 @@ function CreateSiteForm({ open, onClose, onSave }) {
 
     try {
       const siteToSave = {
+        store: `${site.company} - ${site.store}`,
         company: site.company,
         /*         demo: true,
          */ address: site.address,
