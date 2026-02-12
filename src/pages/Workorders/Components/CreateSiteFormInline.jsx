@@ -59,8 +59,8 @@ function CreateSiteFormInline({ onSave, onCancel, client }) {
     e.preventDefault();
 
     const siteToSave = {
-      demo: true, // Remove in production
-      address: formData.address,
+      /*       demo: true, // Remove in production
+       */ address: formData.address,
       city: formData.city,
       state: formData.state,
       zipcode: formData.zipcode,

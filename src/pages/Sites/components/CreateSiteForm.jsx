@@ -140,8 +140,8 @@ function CreateSiteForm({ open, onClose, onSave }) {
     try {
       const siteToSave = {
         company: site.company,
-        demo: true,
-        address: site.address,
+        /*         demo: true,
+         */ address: site.address,
         city: site.city,
         state: site.state,
         zipcode: site.zipcode,

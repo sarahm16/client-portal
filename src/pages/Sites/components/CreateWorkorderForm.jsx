@@ -85,7 +85,8 @@ function CreateWorkorderForm({ open, closeModal, selectedSite }) {
     clientSubmitted: true,
     clientPrice: 0,
     software: "Custom Portal",
-    intake: true,
+    /*     intake: true,
+     */
   });
 
   const handleImageUpload = (files) => {
@@ -113,7 +114,8 @@ function CreateWorkorderForm({ open, closeModal, selectedSite }) {
       clientSubmitted: true,
       clientPrice: 0,
       software: "Custom Portal",
-      intake: true,
+      /*       intake: true,
+       */
     });
     setImages([]);
   };
@@ -133,7 +135,7 @@ function CreateWorkorderForm({ open, closeModal, selectedSite }) {
 
     try {
       const convertedImages = await Promise.all(
-        images.map((image) => convertHeic(image))
+        images.map((image) => convertHeic(image)),
       );
       const imageArray = await saveImagesToBlobStorage(convertedImages);
 

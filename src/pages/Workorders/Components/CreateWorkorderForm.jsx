@@ -211,8 +211,8 @@ function CreateWorkorderForm() {
     clientPrice: 0,
     software: "Custom Portal",
     requiresProposal: false,
-    intake: true,
-    portalWorkorderId: "",
+    /*     intake: true,
+     */ portalWorkorderId: "",
   });
 
   useEffect(() => {
@@ -259,8 +259,8 @@ function CreateWorkorderForm() {
       clientPrice: 0,
       software: "Custom Portal",
       requiresProposal: false,
-      intake: true,
-      portalWorkorderId: "",
+      /*       intake: true,
+       */ portalWorkorderId: "",
     });
     setImages([]);
   };

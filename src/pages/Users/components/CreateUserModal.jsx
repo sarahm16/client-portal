@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // hooks
 import { usePermissions, useRole } from "../../../auth/hooks/usePermissions";
@@ -26,6 +26,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 // MUI Icons
 import CloseIcon from "@mui/icons-material/Close";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { azureClient } from "../../../api/azureClient";
 
 const clientsWithPortal = [
   {
@@ -140,12 +141,24 @@ const buildWelcomeEmail = (newUser, password) => {
   };
 };
 
-const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const validatePhone = (phone) => {
+  if (!phone) return true;
+  const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+  return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
+};
+
+const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
   const { user } = useAuth();
   const { isInternalAdmin, isExternalAdmin } = useRole();
 
   console.log("isInternalAdmin()", isInternalAdmin());
 
+  // Form State
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -161,18 +174,37 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
+  // Clients state
+  const [clients, setClients] = useState([]);
+
   const roles = ["Employee", "Internal Admin", "External Admin"];
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const response = await azureClient.post(
+          `/nosqlquery?databaseId=procurement&containerId=clients`,
+          {
+            query: `SELECT  c.status, c.id, c.client FROM c`,
+          },
+        );
 
-  const validatePhone = (phone) => {
-    if (!phone) return true;
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-    return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
-  };
+        const availableClients = response.data
+          ?.filter((c) => c.status === "Active")
+          .map((c) => ({
+            name: c.client,
+            id: c.id,
+          }));
+
+        setClients(availableClients);
+      } catch (error) {
+        console.error(`Error fetching clients:`, error);
+        alert("Error fetching available clients");
+      }
+    };
+
+    fetchClients();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -374,7 +406,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit, clients = [] }) => {
 
             {isInternalAdmin() && formData?.role !== "Internal Admin" && (
               <Autocomplete
-                options={clientsWithPortal}
+                options={clients}
                 getOptionLabel={(option) => option.name}
                 value={formData.client}
                 onChange={(e, newValue) => handleChange("client", newValue)}
