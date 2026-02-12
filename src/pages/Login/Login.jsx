@@ -102,8 +102,8 @@ function ChangePasswordModal({ open, onClose, email, onSuccess }) {
               width: 56,
               height: 56,
               borderRadius: "50%",
-              bgcolor: "warning.light",
-              color: "warning.dark",
+              bgcolor: "#f0b450",
+              color: "#8b6f00",
               mb: 2,
             }}
           >
@@ -180,7 +180,13 @@ function ChangePasswordModal({ open, onClose, email, onSuccess }) {
               variant="contained"
               size="large"
               disabled={loading}
-              sx={{ py: 1.5 }}
+              sx={{
+                py: 1.5,
+                bgcolor: "#2d5f3f",
+                "&:hover": {
+                  bgcolor: "#234a32",
+                },
+              }}
             >
               {loading ? "Changing Password..." : "Change Password"}
             </Button>
@@ -294,7 +300,7 @@ export default function LoginPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #2d5f3f 0%, #4a8c6b 100%)",
           padding: 2,
         }}
       >
@@ -314,25 +320,12 @@ export default function LoginPage() {
                 style={{ maxWidth: "80%", marginBottom: "20px" }}
               />
 
-              {/*               <Box
-                sx={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 64,
-                  height: 64,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  color: "white",
-                  mb: 2,
-                }}
-              >
-              </Box> */}
               <Typography
                 variant="h4"
                 component="h1"
                 fontWeight="bold"
                 gutterBottom
+                sx={{ color: "#2d5f3f" }}
               >
                 Work Order Portal
               </Typography>
@@ -359,7 +352,16 @@ export default function LoginPage() {
                 }}
                 placeholder="you@company.com"
                 required
-                sx={{ mb: 3 }}
+                sx={{
+                  mb: 3,
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#2d5f3f",
+                    },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: "#2d5f3f",
+                  },
+                }}
                 error={!!emailError}
                 helperText={emailError}
               />
@@ -375,7 +377,16 @@ export default function LoginPage() {
                 }}
                 placeholder="Enter your password"
                 required
-                sx={{ mb: 2 }}
+                sx={{
+                  mb: 2,
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#2d5f3f",
+                    },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: "#2d5f3f",
+                  },
+                }}
                 error={!!passwordError}
                 helperText={passwordError}
                 InputProps={{
@@ -401,7 +412,16 @@ export default function LoginPage() {
                 }}
               >
                 <FormControlLabel
-                  control={<Checkbox color="primary" />}
+                  control={
+                    <Checkbox
+                      sx={{
+                        color: "#2d5f3f",
+                        "&.Mui-checked": {
+                          color: "#2d5f3f",
+                        },
+                      }}
+                    />
+                  }
                   label="Remember me"
                 />
                 <Link
@@ -409,7 +429,14 @@ export default function LoginPage() {
                   type="button"
                   variant="body2"
                   onClick={() => setShowForgotPassword(true)}
-                  sx={{ cursor: "pointer", textDecoration: "none" }}
+                  sx={{
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    color: "#2d5f3f",
+                    "&:hover": {
+                      color: "#4a8c6b",
+                    },
+                  }}
                 >
                   Forgot password?
                 </Link>
@@ -421,7 +448,17 @@ export default function LoginPage() {
                 variant="contained"
                 size="large"
                 disabled={loading}
-                sx={{ mb: 2, py: 1.5 }}
+                sx={{
+                  mb: 2,
+                  py: 1.5,
+                  bgcolor: "#2d5f3f",
+                  "&:hover": {
+                    bgcolor: "#234a32",
+                  },
+                  "&:disabled": {
+                    bgcolor: "#7ba88f",
+                  },
+                }}
               >
                 {loading ? "Signing In..." : "Sign In"}
               </Button>
@@ -433,7 +470,16 @@ export default function LoginPage() {
               textAlign="center"
             >
               Need access?{" "}
-              <Link href="#" underline="hover">
+              <Link
+                href="#"
+                underline="hover"
+                sx={{
+                  color: "#2d5f3f",
+                  "&:hover": {
+                    color: "#4a8c6b",
+                  },
+                }}
+              >
                 Contact your administrator
               </Link>
             </Typography>
