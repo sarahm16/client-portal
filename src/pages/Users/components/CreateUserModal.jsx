@@ -1,10 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { MuiTelInput } from "mui-tel-input";
 
 // hooks
 import { usePermissions, useRole } from "../../../auth/hooks/usePermissions";
 import { useAuth } from "../../../auth/hooks/AuthContext";
+
+// Utilities
 import genPass from "../../../utilities/genPass";
+
+// API
 import { sendEmailViaMicrosoft } from "../../../api/microsoftApi";
+import { azureClient } from "../../../api/azureClient";
 
 // MUI
 import {
@@ -26,18 +32,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 // MUI Icons
 import CloseIcon from "@mui/icons-material/Close";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import { azureClient } from "../../../api/azureClient";
-
-const clientsWithPortal = [
-  {
-    id: "026cdd2f-3874-436e-ab0f-ddf3aa67da26",
-    name: "GPM Investments. ",
-  },
-  {
-    name: "Test JW",
-    id: "22ad3841-22ae-44f2-9639-2b49961fbe71",
-  },
-];
 
 const checkIfUserExists = (email, users) => {
   return users.some((user) => user.email.toLowerCase() === email.toLowerCase());
@@ -449,19 +443,20 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
               variant="outlined"
             />
 
-            <TextField
-              label="Phone"
+            <MuiTelInput
+              label="Phone Number"
               value={formData.phone}
-              onChange={(e) => handleChange("phone", e.target.value)}
+              onChange={(newValue) => handleChange("phone", newValue)}
+              onlyCountries={["US"]}
+              defaultCountry="US"
+              forceCallingCode
+              required
               onBlur={() => handleBlur("phone")}
               error={touched.phone && !!errors.phone}
-              helperText={
-                touched.phone ? errors.phone || "Optional" : "Optional"
-              }
+              helperText={touched.phone ? errors.phone : ""}
               fullWidth
               variant="outlined"
-              placeholder="+1 (555) 123-4567"
-              required
+              placeholder="555 123 4567"
             />
           </Box>
         </DialogContent>
