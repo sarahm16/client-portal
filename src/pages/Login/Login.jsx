@@ -27,6 +27,8 @@ import ForgotPasswordModal from "./components/ForgotPasswordModal";
 import { azureClient } from "../../api/azureClient";
 import { useAuth } from "../../auth/hooks/AuthContext";
 
+import logo from "../../assets/logo.jpg";
+
 // Change Password Modal Component
 function ChangePasswordModal({ open, onClose, email, onSuccess }) {
   const [newPassword, setNewPassword] = useState("");
@@ -306,7 +308,13 @@ export default function LoginPage() {
             }}
           >
             <Box sx={{ textAlign: "center", mb: 4 }}>
-              <Box
+              <img
+                src={logo}
+                alt="NFC Logo"
+                style={{ maxWidth: "80%", marginBottom: "20px" }}
+              />
+
+              {/*               <Box
                 sx={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -319,8 +327,7 @@ export default function LoginPage() {
                   mb: 2,
                 }}
               >
-                <AssignmentIcon sx={{ fontSize: 32 }} />
-              </Box>
+              </Box> */}
               <Typography
                 variant="h4"
                 component="h1"
