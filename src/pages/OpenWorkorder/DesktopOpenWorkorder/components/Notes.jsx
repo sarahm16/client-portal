@@ -187,7 +187,7 @@ function NotesSection() {
         body: newNote,
         user: user?.name || "Client",
         date: new Date().getTime(),
-        company: "client",
+        company: workorder?.client?.name,
         priority: priority,
       };
 
