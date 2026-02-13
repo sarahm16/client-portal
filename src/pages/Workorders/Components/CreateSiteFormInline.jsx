@@ -60,11 +60,12 @@ function CreateSiteFormInline({ onSave, onCancel, client }) {
 
     const siteToSave = {
       /*       demo: true, // Remove in production
-       */ address: formData.address,
+       */
+      store: `${formData.company} - ${formData.store}`,
+      address: formData.address,
       city: formData.city,
       state: formData.state,
       zipcode: formData.zipcode,
-      store: formData.store,
       lat: formData.lat,
       lng: formData.lng,
       client: user.client?.name?.trim(),
@@ -112,6 +113,26 @@ function CreateSiteFormInline({ onSave, onCancel, client }) {
       {/* Simple site form fields */}
       <TextField
         label="Store Name"
+        value={formData.company}
+        onChange={(e) =>
+          setFormData((prev) => ({
+            ...prev,
+            company: e.target.value,
+          }))
+        }
+        fullWidth
+        required
+        placeholder="e.g., Starbucks, Walmart, Target"
+        variant="outlined"
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            bgcolor: "grey.50",
+          },
+        }}
+      />
+      <TextField
+        placeholder="e.g. #12345 or Downtown Location"
+        label="Site Number / Name"
         required
         value={formData.store}
         onChange={(e) =>
@@ -137,6 +158,7 @@ function CreateSiteFormInline({ onSave, onCancel, client }) {
             fontFamily: "inherit",
           }}
           placeholder="Start typing address..."
+          required
         />
         <Box sx={{ fontSize: "0.75rem", color: "text.secondary", mt: 0.5 }}>
           Select an address from the dropdown to auto-fill fields

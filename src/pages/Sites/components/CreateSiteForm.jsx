@@ -294,7 +294,7 @@ function CreateSiteForm({ open, onClose, onSave }) {
                 onChange={(e) => handleInputChange("store", e.target.value)}
                 fullWidth
                 required
-                placeholder="e.g., Store #12345 or Downtown Location"
+                placeholder="e.g. #12345 or Downtown Location"
                 variant="outlined"
                 sx={{
                   "& .MuiOutlinedInput-root": {
