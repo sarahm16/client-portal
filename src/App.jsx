@@ -142,8 +142,8 @@ function App() {
             <ProtectedRoute
               permissions={[
                 "manage_employees",
-                "manage_external_admins",
-                "manage_internal_admins",
+                "manage_managers",
+                "manage_admins",
               ]}
             >
               <Users />

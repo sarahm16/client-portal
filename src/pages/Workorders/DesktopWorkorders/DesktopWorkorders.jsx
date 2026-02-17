@@ -125,7 +125,7 @@ function DesktopWorkorders() {
     },
   ];
 
-  if (role === "Internal Admin") {
+  if (role === "Admin") {
     columns.unshift({
       field: "client",
       headerName: "Client",

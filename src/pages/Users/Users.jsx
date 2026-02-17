@@ -12,6 +12,8 @@ import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import IconButton from "@mui/material/IconButton";
 import Chip from "@mui/material/Chip";
+import Tooltip from "@mui/material/Tooltip";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // MUI Icons
 import AddIcon from "@mui/icons-material/Add";
@@ -22,6 +24,11 @@ import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+
+// Phone Input
+import { MuiTelInput } from "mui-tel-input";
 
 // Custom Components
 import CreateUserModal from "./components/CreateUserModal";
@@ -34,7 +41,7 @@ import { PERMISSIONS } from "../../auth/permissions";
 import { usePermissions, useRole } from "../../auth/hooks/usePermissions";
 import { useAuth } from "../../auth/hooks/AuthContext";
 import { azureClient } from "../../api/azureClient";
-import { saveItemToAzure } from "../../api/azureApi";
+import { saveItemToAzure, updateItemInAzure } from "../../api/azureApi";
 import { RestartAlt } from "@mui/icons-material";
 
 const getInitials = (name) => {
@@ -46,15 +53,15 @@ const getInitials = (name) => {
 };
 const getRoleConfig = (role) => {
   switch (role) {
-    case "Internal Admin":
+    case "Admin":
       return {
-        label: "Internal Admin",
+        label: "Admin",
         color: "error",
         icon: <AdminPanelSettingsIcon fontSize="small" />,
       };
-    case "External Admin":
+    case "Manager":
       return {
-        label: "External Admin",
+        label: "Manager",
         color: "warning",
         icon: <SupervisorAccountIcon fontSize="small" />,
       };
@@ -74,12 +81,17 @@ function Users() {
 
   const [userToBlock, setUserToBlock] = useState(null);
 
+  // Phone editing state
+  const [editingPhoneUserId, setEditingPhoneUserId] = useState(null);
+  const [phoneEditValue, setPhoneEditValue] = useState("");
+  const [phoneEditLoading, setPhoneEditLoading] = useState(false);
+
   const { user } = useAuth();
   const client = user?.client;
-  const { isInternalAdmin, isExternalAdmin } = useRole();
+  const { isAdmin, isManager } = useRole();
   const { hasPermission } = usePermissions();
 
-  console.log("Is Internal Admin:", isInternalAdmin);
+  console.log("Is Admin:", isAdmin);
 
   useEffect(() => {
     fetchUsers();
@@ -93,7 +105,7 @@ function Users() {
 
       console.log("Fetched users:", response.data);
 
-      if (isInternalAdmin()) {
+      if (isAdmin()) {
         setUsers(response.data);
         return;
       }
@@ -113,16 +125,20 @@ function Users() {
 
   const handleSaveEdits = async (editedUser) => {
     // Need to trim all strings, and lower case the email
-    editedUser = {
-      ...editedUser,
+    const updates = {
+      /*       ...editedUser,
       name: editedUser.name.trim(),
-      email: editedUser.email.trim().toLowerCase(),
+      email: editedUser.email.trim().toLowerCase(), */
       phone: editedUser.phone ? editedUser.phone.trim() : "",
     };
 
-    const savedUser = await saveItemToAzure(editedUser, "users");
+    const updatedUser = await updateItemInAzure(
+      updates,
+      "users",
+      editedUser.id,
+    );
     setUsers((prevUsers) =>
-      prevUsers.map((user) => (user.id === savedUser.id ? savedUser : user)),
+      prevUsers.map((user) => (user.id === editedUser.id ? updatedUser : user)),
     );
   };
 
@@ -130,6 +146,36 @@ function Users() {
     setUsers((prev) =>
       prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
     );
+  };
+
+  // Phone editing handlers
+  const handleStartPhoneEdit = (userId, currentPhone) => {
+    setEditingPhoneUserId(userId);
+    setPhoneEditValue(currentPhone || "");
+  };
+
+  const handleCancelPhoneEdit = () => {
+    setEditingPhoneUserId(null);
+    setPhoneEditValue("");
+  };
+
+  const handleSavePhoneEdit = async (userId) => {
+    setPhoneEditLoading(true);
+    try {
+      const userToUpdate = users.find((u) => u.id === userId);
+      const updatedUser = {
+        ...userToUpdate,
+        phone: phoneEditValue,
+      };
+      await handleSaveEdits(updatedUser);
+      setEditingPhoneUserId(null);
+      setPhoneEditValue("");
+    } catch (err) {
+      console.error("Failed to save phone:", err);
+      setError(`Failed to update phone: ${err.message}`);
+    } finally {
+      setPhoneEditLoading(false);
+    }
   };
 
   const columns = [
@@ -235,16 +281,121 @@ function Users() {
     {
       field: "phone",
       headerName: "Phone",
-      flex: 0.7,
-      minWidth: 140,
-      renderCell: (params) => (
-        <Box display="flex" alignItems="center" gap={1}>
-          <PhoneIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-          <Typography variant="body2" color="text.secondary">
-            {params.value}
-          </Typography>
-        </Box>
-      ),
+      flex: 1,
+      minWidth: 280,
+      renderCell: (params) => {
+        const isEditing = editingPhoneUserId === params.row.id;
+
+        if (isEditing) {
+          return (
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={1}
+              width="100%"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MuiTelInput
+                value={phoneEditValue}
+                onChange={(newValue) => setPhoneEditValue(newValue)}
+                onlyCountries={["US"]}
+                defaultCountry="US"
+                forceCallingCode
+                size="small"
+                placeholder="555 123 4567"
+                sx={{
+                  flex: 1,
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "background.paper",
+                  },
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSavePhoneEdit(params.row.id);
+                  } else if (e.key === "Escape") {
+                    handleCancelPhoneEdit();
+                  }
+                }}
+                autoFocus
+              />
+              <Box display="flex" gap={0.5}>
+                <Tooltip title="Save (Enter)">
+                  <IconButton
+                    size="small"
+                    color="success"
+                    onClick={() => handleSavePhoneEdit(params.row.id)}
+                    disabled={phoneEditLoading}
+                    sx={{
+                      bgcolor: "success.50",
+                      "&:hover": { bgcolor: "success.100" },
+                    }}
+                  >
+                    {phoneEditLoading ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <CheckIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Cancel (Esc)">
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={handleCancelPhoneEdit}
+                    disabled={phoneEditLoading}
+                    sx={{
+                      bgcolor: "error.50",
+                      "&:hover": { bgcolor: "error.100" },
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          );
+        }
+
+        return (
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1}
+            width="100%"
+            sx={{
+              cursor: "pointer",
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              transition: "all 0.2s",
+              "&:hover": {
+                bgcolor: "action.hover",
+                "& .edit-icon": {
+                  opacity: 1,
+                },
+              },
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleStartPhoneEdit(params.row.id, params.value);
+            }}
+          >
+            <PhoneIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+            <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+              {params.value || "Click to add"}
+            </Typography>
+            <EditIcon
+              className="edit-icon"
+              sx={{
+                fontSize: 16,
+                color: "primary.main",
+                opacity: 0,
+                transition: "opacity 0.2s",
+              }}
+            />
+          </Box>
+        );
+      },
     },
     {
       field: "actions",
@@ -285,7 +436,7 @@ function Users() {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth={1500} sx={{ py: 4 }}>
       {userToBlock && (
         <DeactiveUserModal
           userToBlock={userToBlock}
@@ -311,7 +462,7 @@ function Users() {
       >
         <Box>
           <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
-            {isInternalAdmin() ? "All Users" : "My Team"}
+            {isAdmin() ? "All Users" : "My Team"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Manage user accounts and permissions
@@ -336,7 +487,7 @@ function Users() {
       </Box>
 
       {/* Info Alerts */}
-      {isInternalAdmin() && (
+      {isAdmin() && (
         <Alert
           severity="info"
           icon={<AdminPanelSettingsIcon />}
@@ -346,7 +497,7 @@ function Users() {
         </Alert>
       )}
 
-      {isExternalAdmin() && (
+      {isManager() && (
         <Alert
           severity="info"
           icon={<SupervisorAccountIcon />}

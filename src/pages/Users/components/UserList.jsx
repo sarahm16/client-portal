@@ -22,7 +22,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 export default function UserList({ users, canManageAll }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const { isInternalAdmin } = useRole();
+  const { isAdmin } = useRole();
 
   const handleMenuOpen = (event, user) => {
     setAnchorEl(event.currentTarget);
@@ -36,9 +36,9 @@ export default function UserList({ users, canManageAll }) {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case ROLES.INTERNAL_ADMIN:
+      case ROLES.ADMIN:
         return "error";
-      case ROLES.EXTERNAL_ADMIN:
+      case ROLES.MANAGER:
         return "warning";
       case ROLES.EMPLOYEE:
         return "primary";
@@ -49,10 +49,10 @@ export default function UserList({ users, canManageAll }) {
 
   const getRoleLabel = (role) => {
     switch (role) {
-      case ROLES.INTERNAL_ADMIN:
-        return "Internal Admin";
-      case ROLES.EXTERNAL_ADMIN:
-        return "External Admin";
+      case ROLES.ADMIN:
+        return "Admin";
+      case ROLES.MANAGER:
+        return "Manager";
       case ROLES.EMPLOYEE:
         return "Employee";
       default:
@@ -121,7 +121,7 @@ export default function UserList({ users, canManageAll }) {
       >
         <MenuItem onClick={handleMenuClose}>Edit User</MenuItem>
         <MenuItem onClick={handleMenuClose}>Manage Sites</MenuItem>
-        {isInternalAdmin && selectedUser?.role !== ROLES.INTERNAL_ADMIN && (
+        {isAdmin && selectedUser?.role !== ROLES.ADMIN && (
           <MenuItem onClick={handleMenuClose}>Change Role</MenuItem>
         )}
         <MenuItem onClick={handleMenuClose} sx={{ color: "error.main" }}>

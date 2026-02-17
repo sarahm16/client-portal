@@ -35,8 +35,8 @@ function Workorders() {
   // User info
   const { user } = useAuth();
   const client = user?.client;
-  const { isInternalAdmin } = useRole();
-  const userIsInternalAdmin = isInternalAdmin();
+  const { isAdmin } = useRole();
+  const userIsAdmin = isAdmin();
 
   // State
   const [workorders, setWorkorders] = useState([]);
@@ -49,7 +49,7 @@ function Workorders() {
   useEffect(() => {
     const fetchWorkorders = async () => {
       const response = await getItemsFromAzure("workorders");
-      const roleFilteredArray = userIsInternalAdmin
+      const roleFilteredArray = userIsAdmin
         ? response?.sort((a, b) => b.createdDate - a.createdDate)
         : response
             .filter((wo) => wo.client?.id === client?.id && !wo.financeStatus)
@@ -60,7 +60,7 @@ function Workorders() {
     };
 
     fetchWorkorders();
-  }, [client, user, userIsInternalAdmin]);
+  }, [client, user, userIsAdmin]);
 
   const matchesStatus = (workorder) => {
     const clientStatus = Object.keys(mappedClientStatuses)?.find((st) =>

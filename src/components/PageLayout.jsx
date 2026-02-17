@@ -43,7 +43,7 @@ function Layout({ children }) {
   const { hasAnyPermission } = usePermissions();
   const canAccessUsers = hasAnyPermission([
     "manage_employees",
-    "manage_external_admins",
+    "manage_managers",
   ]);
 
   console.log("canAccessUsers in Layout:", canAccessUsers);
@@ -90,9 +90,9 @@ function Layout({ children }) {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case "internal_admin":
+      case "admin":
         return "error";
-      case "external_admin":
+      case "manager":
         return "warning";
       default:
         return "primary";
@@ -101,10 +101,10 @@ function Layout({ children }) {
 
   const getRoleLabel = (role) => {
     switch (role) {
-      case "internal_admin":
-        return "Internal Admin";
-      case "external_admin":
-        return "External Admin";
+      case "admin":
+        return "Admin";
+      case "manager":
+        return "Manager";
       case "employee":
         return "Employee";
       default:

@@ -9,7 +9,7 @@ export function usePermissions() {
       "Checking permission:",
       permission,
       "for user role:",
-      user?.role
+      user?.role,
     );
     if (!user?.role) return false;
     const userPermissions = ROLE_PERMISSIONS[user.role] || [];
@@ -22,7 +22,7 @@ export function usePermissions() {
       "Checking any permissions:",
       permissions,
       "for user role:",
-      user?.role
+      user?.role,
     );
     return permissions.some((permission) => hasPermission(permission));
   };
@@ -32,7 +32,7 @@ export function usePermissions() {
       "Checking all permissions:",
       permissions,
       "for user role:",
-      user?.role
+      user?.role,
     );
     return permissions.every((permission) => hasPermission(permission));
   };
@@ -44,8 +44,8 @@ export function useRole() {
   const { user } = useAuth();
 
   const isEmployee = () => user?.role === "Employee";
-  const isExternalAdmin = () => user?.role === "External Admin";
-  const isInternalAdmin = () => user?.role === "Internal Admin";
+  const isManager = () => user?.role === "Manager";
+  const isAdmin = () => user?.role === "Admin";
 
-  return { isEmployee, isExternalAdmin, isInternalAdmin };
+  return { isEmployee, isManager, isAdmin };
 }

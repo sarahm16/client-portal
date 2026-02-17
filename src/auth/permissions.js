@@ -1,7 +1,7 @@
 export const ROLES = {
   EMPLOYEE: "Employee",
-  EXTERNAL_ADMIN: "External Admin",
-  INTERNAL_ADMIN: "Internal Admin",
+  MANAGER: "Manager",
+  ADMIN: "Admin",
 };
 
 export const PERMISSIONS = {
@@ -17,10 +17,10 @@ export const PERMISSIONS = {
   // User Management
   CREATE_EMPLOYEE: "create_employee",
   MANAGE_EMPLOYEES: "manage_employees",
-  CREATE_EXTERNAL_ADMIN: "create_external_admin",
-  MANAGE_EXTERNAL_ADMINS: "manage_external_admins",
-  CREATE_INTERNAL_ADMIN: "create_internal_admin",
-  MANAGE_INTERNAL_ADMINS: "manage_internal_admins",
+  CREATE_MANAGER: "create_manager",
+  MANAGE_MANAGERS: "manage_managers",
+  CREATE_ADMIN: "create_admin",
+  MANAGE_ADMINS: "manage_admins",
 
   // Site Management
   VIEW_SITES: "view_sites",
@@ -28,7 +28,7 @@ export const PERMISSIONS = {
 
 export const ROLE_PERMISSIONS = {
   [ROLES.EMPLOYEE]: [PERMISSIONS.VIEW_WORK_ORDERS, PERMISSIONS.VIEW_SITES],
-  [ROLES.EXTERNAL_ADMIN]: [
+  [ROLES.MANAGER]: [
     PERMISSIONS.CANCEL_WORK_ORDERS,
     PERMISSIONS.EDIT_WORK_ORDERS,
     PERMISSIONS.APPROVE_NTE,
@@ -38,5 +38,5 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_WORK_ORDERS,
     PERMISSIONS.VIEW_SITES,
   ],
-  [ROLES.INTERNAL_ADMIN]: [...Object.values(PERMISSIONS)],
+  [ROLES.ADMIN]: [...Object.values(PERMISSIONS)],
 };

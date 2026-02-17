@@ -148,9 +148,9 @@ const validatePhone = (phone) => {
 
 const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
   const { user } = useAuth();
-  const { isInternalAdmin, isExternalAdmin } = useRole();
+  const { isAdmin, isManager } = useRole();
 
-  console.log("isInternalAdmin()", isInternalAdmin());
+  console.log("isAdmin()", isAdmin());
 
   // Form State
   const [formData, setFormData] = useState({
@@ -171,7 +171,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
   // Clients state
   const [clients, setClients] = useState([]);
 
-  const roles = ["Employee", "Internal Admin", "External Admin"];
+  const roles = ["Employee", "Admin", "Manager"];
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -225,7 +225,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
       newErrors.role = "Role is required";
     }
 
-    if (!formData.client && !isInternalAdmin()) {
+    if (!formData.client && !isAdmin()) {
       newErrors.client = "Client is required";
     }
 
@@ -260,11 +260,11 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
       email: true,
       phone: true,
       role: true,
-      client: !isInternalAdmin(),
+      client: !isAdmin(),
     });
 
-    // If user is external admin, assign their client automatically
-    if (!isInternalAdmin()) {
+    // If user is manager, assign their client automatically
+    if (!isAdmin()) {
       formData.client = user.client;
       formData.role = "Employee";
     }
@@ -359,7 +359,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 2 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            {isInternalAdmin() && (
+            {isAdmin() && (
               <TextField
                 select
                 label="Role"
@@ -369,7 +369,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
                 error={touched.role && !!errors.role}
                 helperText={touched.role && errors.role}
                 fullWidth
-                required={isInternalAdmin()}
+                required={isAdmin()}
                 variant="outlined"
               >
                 {roles.map((role) => (
@@ -380,7 +380,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
               </TextField>
             )}
 
-            {isExternalAdmin() && (
+            {isManager() && (
               <TextField
                 select
                 label="Role"
@@ -390,15 +390,15 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
                 error={touched.role && !!errors.role}
                 helperText={touched.role && errors.role}
                 fullWidth
-                required={isExternalAdmin()}
+                required={isManager()}
                 variant="outlined"
               >
-                <MenuItem value={"External Admin"}>External Admin</MenuItem>
+                <MenuItem value={"Manager"}>Manager</MenuItem>
                 <MenuItem value={"Employee"}>Employee</MenuItem>
               </TextField>
             )}
 
-            {isInternalAdmin() && formData?.role !== "Internal Admin" && (
+            {isAdmin() && formData?.role !== "Admin" && (
               <Autocomplete
                 options={clients}
                 getOptionLabel={(option) => option.name}
@@ -411,7 +411,7 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
                     label="Client"
                     error={touched.client && !!errors.client}
                     helperText={touched.client && errors.client}
-                    required={isInternalAdmin()}
+                    required={isAdmin()}
                     variant="outlined"
                   />
                 )}
