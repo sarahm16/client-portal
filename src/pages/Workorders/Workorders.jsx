@@ -49,9 +49,12 @@ function Workorders() {
   useEffect(() => {
     const fetchWorkorders = async () => {
       const response = await getItemsFromAzure("workorders");
+      const portalFilteredArray = response.filter(
+        (wo) => wo.software === "Custom Portal",
+      );
       const roleFilteredArray = userIsAdmin
-        ? response?.sort((a, b) => b.createdDate - a.createdDate)
-        : response
+        ? portalFilteredArray?.sort((a, b) => b.createdDate - a.createdDate)
+        : portalFilteredArray
             .filter((wo) => wo.client?.id === client?.id && !wo.financeStatus)
             ?.sort((a, b) => b.createdDate - a.createdDate);
 
