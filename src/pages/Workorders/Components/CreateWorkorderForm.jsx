@@ -306,7 +306,7 @@ function CreateWorkorderForm() {
           {
             date: new Date().getTime(),
             user: user.name || "Unknown User",
-            action: "Created work order",
+            action: `Created work order in client portal for ${formValues?.client?.name || "Unknown Client"}`,
           },
         ],
         images: imageArray,
