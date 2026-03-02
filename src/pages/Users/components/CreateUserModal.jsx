@@ -266,7 +266,6 @@ const CreateUserModal = ({ users, open, onClose, onSubmit }) => {
     // If user is manager, assign their client automatically
     if (!isAdmin()) {
       formData.client = user.client;
-      formData.role = "Employee";
     }
 
     if (validateForm()) {
