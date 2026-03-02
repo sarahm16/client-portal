@@ -90,9 +90,9 @@ function Layout({ children }) {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case "admin":
+      case "Admin":
         return "error";
-      case "manager":
+      case "Manager":
         return "warning";
       default:
         return "primary";
@@ -100,16 +100,9 @@ function Layout({ children }) {
   };
 
   const getRoleLabel = (role) => {
-    switch (role) {
-      case "admin":
-        return "Admin";
-      case "manager":
-        return "Manager";
-      case "employee":
-        return "Employee";
-      default:
-        return "User";
-    }
+    console.log("role in getRoleLabel:", role);
+
+    return role || "User";
   };
 
   return (
