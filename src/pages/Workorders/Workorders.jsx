@@ -54,7 +54,7 @@ function Workorders() {
       );
       const roleFilteredArray = userIsAdmin
         ? portalFilteredArray?.sort((a, b) => b.createdDate - a.createdDate)
-        : portalFilteredArray
+        : response
             .filter((wo) => wo.client?.id === client?.id && !wo.financeStatus)
             ?.sort((a, b) => b.createdDate - a.createdDate);
 
