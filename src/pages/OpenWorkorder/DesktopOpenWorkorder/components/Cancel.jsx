@@ -1,10 +1,12 @@
 import { useState, useContext } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
 import Cancel from "@mui/icons-material/Cancel";
 import { WorkorderContext } from "../../OpenWorkorder";
 import { useAuth } from "../../../../auth/hooks/AuthContext";
@@ -203,15 +205,64 @@ function CancelWorkorder() {
       </Button>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Cancel Work Order</DialogTitle>
-        <DialogContent>
+        {/* Colored Header */}
+        <Box
+          sx={{
+            bgcolor: "#ffebee",
+            borderBottom: "3px solid #f44336",
+            p: 2.5,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                bgcolor: "#f44336",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Cancel sx={{ color: "white" }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: "#c62828" }}>
+              Cancel Work Order
+            </Typography>
+          </Box>
+        </Box>
+
+        <DialogContent sx={{ pt: 3 }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            This action will permanently cancel the work order and notify
+            relevant team members.
+          </Alert>
+
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: "#f5f5f5",
+              borderRadius: 2,
+              border: "1px solid #e0e0e0",
+              mb: 3,
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              Work Order
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5 }}>
+              {workorder?.id}
+            </Typography>
+          </Box>
+
           <TextField
             autoFocus
-            margin="dense"
-            label="Reason for Cancellation"
             fullWidth
             multiline
             rows={4}
+            label="Reason for Cancellation"
+            placeholder="e.g., Customer request, duplicate order, no longer needed..."
             value={reason}
             onChange={(e) => {
               setReason(e.target.value);
@@ -221,14 +272,22 @@ function CancelWorkorder() {
             helperText={
               error || "Please explain why this work order is being cancelled"
             }
-            placeholder="e.g., Customer request, duplicate order, no longer needed..."
+            variant="outlined"
+            required
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose} color="inherit">
+
+        <DialogActions sx={{ p: 3, pt: 2, gap: 1 }}>
+          <Button onClick={handleClose} variant="outlined" color="inherit">
             Keep Active
           </Button>
-          <Button onClick={handleCancel} variant="contained" color="error">
+          <Button
+            onClick={handleCancel}
+            variant="contained"
+            color="error"
+            disabled={!reason.trim()}
+            startIcon={<Cancel />}
+          >
             Cancel Work Order
           </Button>
         </DialogActions>
