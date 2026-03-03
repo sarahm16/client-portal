@@ -2,12 +2,14 @@ import React, { useContext, useState } from "react";
 import {
   Button,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
   TextField,
+  Box,
+  Typography,
+  Alert,
 } from "@mui/material";
+import ReplayIcon from "@mui/icons-material/Replay";
 
 // Context
 import { WorkorderContext } from "../../OpenWorkorder";
@@ -211,44 +213,60 @@ function Reopen() {
       </Button>
 
       {/* Modal Dialog */}
-      <Dialog
-        open={open}
-        onClose={handleCloseModal}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
-          },
-        }}
-      >
-        <DialogTitle
+      <Dialog open={open} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+        {/* Colored Header */}
+        <Box
           sx={{
-            pb: 1,
-            fontSize: "1.5rem",
-            fontWeight: 600,
+            bgcolor: "#fff3e0",
+            borderBottom: "3px solid #ff9800",
+            p: 2.5,
           }}
         >
-          Reopen Work Order
-        </DialogTitle>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                bgcolor: "#ff9800",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ReplayIcon sx={{ color: "white" }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: "#e65100" }}>
+              Reopen Work Order
+            </Typography>
+          </Box>
+        </Box>
 
-        <DialogContent sx={{ pt: 2 }}>
-          <DialogContentText
+        <DialogContent sx={{ pt: 3 }}>
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            This will change the status back to active and notify relevant team
+            members.
+          </Alert>
+
+          <Box
             sx={{
+              p: 2,
+              bgcolor: "#f5f5f5",
+              borderRadius: 2,
+              border: "1px solid #e0e0e0",
               mb: 3,
-              fontSize: "0.95rem",
-              lineHeight: 1.6,
-              color: "text.primary",
             }}
           >
-            Are you sure you want to reopen this work order? This will change
-            the status back to active and notify relevant team members.
-          </DialogContentText>
+            <Typography variant="caption" color="text.secondary">
+              Work Order
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5 }}>
+              {workorder?.id}
+            </Typography>
+          </Box>
 
           <TextField
             autoFocus
-            required
             fullWidth
             multiline
             rows={4}
@@ -258,24 +276,16 @@ function Reopen() {
             onChange={(e) => setReopenReason(e.target.value)}
             disabled={isSubmitting}
             variant="outlined"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-              },
-            }}
+            required
           />
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions sx={{ p: 3, pt: 2, gap: 1 }}>
           <Button
             onClick={handleCloseModal}
-            disabled={isSubmitting}
             variant="outlined"
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 500,
-            }}
+            color="inherit"
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
@@ -284,14 +294,9 @@ function Reopen() {
             variant="contained"
             color="warning"
             disabled={!reopenReason.trim() || isSubmitting}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 600,
-              px: 3,
-            }}
+            startIcon={<ReplayIcon />}
           >
-            {isSubmitting ? "Reopening..." : "Confirm Reopen"}
+            {isSubmitting ? "Reopening..." : "Reopen Work Order"}
           </Button>
         </DialogActions>
       </Dialog>
