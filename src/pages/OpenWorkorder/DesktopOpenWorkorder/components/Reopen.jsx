@@ -182,7 +182,10 @@ function Reopen() {
       ]);
 
       const bccRecipients = generateEmailRecipients([
-        "sarah.carter@evergreenbrands.com", // Replace with PM
+        "sarah.carter@evergreenbrands.com",
+        "stehou@nationalfacilitycontractors.com",
+        "barern@nationalfacilitycontractors.com",
+        "alipyl@nationalfacilitycontractors.com",
       ]);
 
       await sendEmailFromHTML(

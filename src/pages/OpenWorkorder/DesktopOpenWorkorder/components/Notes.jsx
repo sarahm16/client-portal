@@ -214,6 +214,9 @@ function NotesSection() {
       );
       const bccRecipients = generateEmailRecipients([
         "sarah.carter@evergreenbrands.com",
+        "stehou@nationalfacilitycontractors.com",
+        "barern@nationalfacilitycontractors.com",
+        "alipyl@nationalfacilitycontractors.com",
       ]);
 
       const emailRecipients = generateEmailRecipients([
