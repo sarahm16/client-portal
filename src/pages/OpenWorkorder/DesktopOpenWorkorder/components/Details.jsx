@@ -111,6 +111,8 @@ const generateEmailBody = (
                   </td>
                 </tr>
               </table>
+
+              <a href="https://sarlacc.nfcfm.com/workorders/${id}" style="display: inline-block; margin-top: 24px; padding: 12px 24px; background-color: ${decision === "Approved" ? "#059669" : "#dc2626"}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;" target="_blank" rel="noopener noreferrer">View Work Order Details</a>
             </td>
           </tr>
           
