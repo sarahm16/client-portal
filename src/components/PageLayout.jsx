@@ -19,6 +19,15 @@ import Divider from "@mui/material/Divider";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import Select from "@mui/material/Select";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Alert from "@mui/material/Alert";
 
 // MUI Icons
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -28,10 +37,15 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LocationIcon from "@mui/icons-material/LocationOn";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import SendIcon from "@mui/icons-material/Send";
+import CloseIcon from "@mui/icons-material/Close";
+import HelpForm from "./HelpForm";
+
+const INITIAL_FORM = { subject: "", category: "", description: "" };
 
 function Layout({ children }) {
   const { user, logout } = useAuth();
-  console.log("user in Layout:", user);
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -46,23 +60,11 @@ function Layout({ children }) {
     "manage_managers",
   ]);
 
-  console.log("canAccessUsers in Layout:", canAccessUsers);
-
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleMobileMenuOpen = (event) => {
+  const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleProfileMenuClose = () => setAnchorEl(null);
+  const handleMobileMenuOpen = (event) =>
     setMobileMenuAnchor(event.currentTarget);
-  };
-
-  const handleMobileMenuClose = () => {
-    setMobileMenuAnchor(null);
-  };
+  const handleMobileMenuClose = () => setMobileMenuAnchor(null);
 
   const handleLogout = () => {
     handleProfileMenuClose();
@@ -75,9 +77,7 @@ function Layout({ children }) {
     handleMobileMenuClose();
   };
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const isActive = (path) => location.pathname === path;
 
   const getInitials = (name) => {
     if (!name) return "U";
@@ -99,11 +99,17 @@ function Layout({ children }) {
     }
   };
 
-  const getRoleLabel = (role) => {
-    console.log("role in getRoleLabel:", role);
+  const getRoleLabel = (role) => role || "User";
 
-    return role || "User";
-  };
+  const navButtonSx = (path) => ({
+    textTransform: "none",
+    fontWeight: 600,
+    color: isActive(path) ? "primary.main" : "text.primary",
+    bgcolor: isActive(path) ? "primary.50" : "transparent",
+    "&:hover": { bgcolor: isActive(path) ? "primary.100" : "action.hover" },
+    px: 2,
+    borderRadius: 2,
+  });
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -111,11 +117,7 @@ function Layout({ children }) {
       <AppBar
         position="sticky"
         elevation={0}
-        sx={{
-          bgcolor: "white",
-          borderBottom: 1,
-          borderColor: "divider",
-        }}
+        sx={{ bgcolor: "white", borderBottom: 1, borderColor: "divider" }}
       >
         <Toolbar sx={{ gap: 2 }}>
           {/* Logo/Brand */}
@@ -137,71 +139,28 @@ function Layout({ children }) {
 
           {/* Desktop Navigation */}
           <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              gap: 1,
-              ml: 4,
-              flex: 1,
-            }}
+            sx={{ display: { xs: "none", md: "flex" }, gap: 1, ml: 4, flex: 1 }}
           >
             <Button
               startIcon={<WorkIcon />}
               onClick={() => handleNavigation("/workorders")}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                color: isActive("/workorders")
-                  ? "primary.main"
-                  : "text.primary",
-                bgcolor: isActive("/workorders") ? "primary.50" : "transparent",
-                "&:hover": {
-                  bgcolor: isActive("/workorders")
-                    ? "primary.100"
-                    : "action.hover",
-                },
-                px: 2,
-                borderRadius: 2,
-              }}
+              sx={navButtonSx("/workorders")}
             >
               Work Orders
             </Button>
-
             {canAccessUsers && (
               <Button
                 startIcon={<PeopleIcon />}
                 onClick={() => handleNavigation("/users")}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  color: isActive("/users") ? "primary.main" : "text.primary",
-                  bgcolor: isActive("/users") ? "primary.50" : "transparent",
-                  "&:hover": {
-                    bgcolor: isActive("/users")
-                      ? "primary.100"
-                      : "action.hover",
-                  },
-                  px: 2,
-                  borderRadius: 2,
-                }}
+                sx={navButtonSx("/users")}
               >
                 Users
               </Button>
             )}
-
             <Button
               startIcon={<LocationIcon />}
               onClick={() => handleNavigation("/sites")}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                color: isActive("/sites") ? "primary.main" : "text.primary",
-                bgcolor: isActive("/sites") ? "primary.50" : "transparent",
-                "&:hover": {
-                  bgcolor: isActive("/sites") ? "primary.100" : "action.hover",
-                },
-                px: 2,
-                borderRadius: 2,
-              }}
+              sx={navButtonSx("/sites")}
             >
               Sites
             </Button>
@@ -215,7 +174,7 @@ function Layout({ children }) {
             <MenuIcon />
           </IconButton>
 
-          {/* User Info & Profile Menu */}
+          {/* Desktop: Help button + User Info */}
           <Box
             sx={{
               display: { xs: "none", md: "flex" },
@@ -224,6 +183,9 @@ function Layout({ children }) {
               ml: "auto",
             }}
           >
+            {/* ── Help & Support button ── */}
+            <HelpForm />
+
             <Box sx={{ textAlign: "right" }}>
               <Typography variant="body2" fontWeight={600} color="text.primary">
                 {user?.name || "User"}
@@ -262,11 +224,7 @@ function Layout({ children }) {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         PaperProps={{
           elevation: 3,
-          sx: {
-            mt: 1.5,
-            minWidth: 200,
-            borderRadius: 2,
-          },
+          sx: { mt: 1.5, minWidth: 200, borderRadius: 2 },
         }}
       >
         <Box sx={{ px: 2, py: 1.5 }}>
@@ -278,18 +236,6 @@ function Layout({ children }) {
           </Typography>
         </Box>
         <Divider />
-        {/*         <MenuItem onClick={handleProfileMenuClose}>
-          <ListItemIcon>
-            <AccountCircleIcon fontSize="small" />
-          </ListItemIcon>
-          Profile
-        </MenuItem>
-        <MenuItem onClick={handleProfileMenuClose}>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" />
-          </ListItemIcon>
-          Settings
-        </MenuItem> */}
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
@@ -308,11 +254,7 @@ function Layout({ children }) {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         PaperProps={{
           elevation: 3,
-          sx: {
-            mt: 1.5,
-            minWidth: 200,
-            borderRadius: 2,
-          },
+          sx: { mt: 1.5, minWidth: 200, borderRadius: 2 },
         }}
       >
         <Box sx={{ px: 2, py: 1.5 }}>
@@ -347,6 +289,16 @@ function Layout({ children }) {
           </ListItemIcon>
           Sites
         </MenuItem>
+        <Divider />
+        {/* ── Help & Support in mobile menu ── */}
+        {/*         <MenuItem onClick={handleHelpOpen}>
+          <ListItemIcon>
+            <HelpOutlineIcon fontSize="small" color="primary" />
+          </ListItemIcon>
+          <Typography color="primary.main" fontWeight={600}>
+            Help & Support
+          </Typography>
+        </MenuItem> */}
         <Divider />
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
