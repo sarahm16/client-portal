@@ -7,6 +7,7 @@ import PricingSection from "./components/Pricing";
 import AfterImagesSection from "./components/AfterImages";
 import NotesSection from "./components/Notes";
 import InitialImagesSection from "./components/BeforeImages";
+import HvacEquipment from "./components/HvacEquipment";
 
 // MUI Components
 import Box from "@mui/material/Box";
@@ -35,6 +36,10 @@ function DesktopOpenWorkorder() {
       </Container>
     );
   }
+
+  const isHvacAssessment =
+    workorder?.workorderType === "Warranty" &&
+    workorder?.service === "Assessment";
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -68,7 +73,7 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <WorkorderDetailsSection />
             <SiteDetailsSection />
-            <InitialImagesSection />
+            {!isHvacAssessment && <InitialImagesSection />}
           </Stack>
         </Grid>
 
@@ -76,13 +81,16 @@ function DesktopOpenWorkorder() {
         <Grid size={{ xs: 12, lg: 4 }}>
           <Stack direction="column" spacing={3}>
             <PricingSection />
-            <AfterImagesSection />
+            {/* Move Notes here in HVAC work orders to make room for HVAC equipment details in the right column */}
+            {isHvacAssessment && <NotesSection />}
+            {!isHvacAssessment && <AfterImagesSection />}
           </Stack>
         </Grid>
 
         {/* Right Column */}
         <Grid size={{ xs: 12, lg: 4 }}>
-          <NotesSection />
+          {!isHvacAssessment && <NotesSection />}
+          {isHvacAssessment && <HvacEquipment />}
         </Grid>
       </Grid>
     </Container>
