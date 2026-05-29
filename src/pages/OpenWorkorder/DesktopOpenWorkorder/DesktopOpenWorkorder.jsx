@@ -8,6 +8,8 @@ import AfterImagesSection from "./components/AfterImages";
 import NotesSection from "./components/Notes";
 import InitialImagesSection from "./components/BeforeImages";
 import HvacEquipment from "./components/HvacEquipment";
+import ExhaustFanEquipment from "./components/ExhaustFanEquipment";
+import HvacPmEquipment from "./components/HvacPmEquipment";
 
 // MUI Components
 import Box from "@mui/material/Box";
@@ -23,7 +25,6 @@ import LocationOn from "@mui/icons-material/LocationOn";
 
 // Context
 import { WorkorderContext } from "../OpenWorkorder";
-import ExhaustFanEquipment from "./components/ExhaustFanEquipment";
 
 function DesktopOpenWorkorder() {
   const { workorder } = useContext(WorkorderContext);
@@ -45,6 +46,9 @@ function DesktopOpenWorkorder() {
   const isExhaustFanWorkorder =
     workorder?.workorderType === "Warranty" &&
     workorder?.service === "Exhaust Fan PM";
+
+  const isHvacPm =
+    workorder?.workorderType === "Warranty" && workorder?.service === "HVAC PM";
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -78,7 +82,7 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <WorkorderDetailsSection />
             <SiteDetailsSection />
-            {!isHvacAssessment && !isExhaustFanWorkorder && (
+            {!isHvacAssessment && !isExhaustFanWorkorder && !isHvacPm && (
               <InitialImagesSection />
             )}
           </Stack>
@@ -89,8 +93,10 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <PricingSection />
             {/* Move Notes here in HVAC work orders to make room for HVAC equipment details in the right column */}
-            {(isHvacAssessment || isExhaustFanWorkorder) && <NotesSection />}
-            {!isHvacAssessment && !isExhaustFanWorkorder && (
+            {(isHvacAssessment || isExhaustFanWorkorder || isHvacPm) && (
+              <NotesSection />
+            )}
+            {!isHvacAssessment && !isExhaustFanWorkorder && !isHvacPm && (
               <AfterImagesSection />
             )}
           </Stack>
@@ -98,9 +104,12 @@ function DesktopOpenWorkorder() {
 
         {/* Right Column */}
         <Grid size={{ xs: 12, lg: 4 }}>
-          {!isHvacAssessment && !isExhaustFanWorkorder && <NotesSection />}
+          {!isHvacAssessment && !isExhaustFanWorkorder && !isHvacPm && (
+            <NotesSection />
+          )}
           {isHvacAssessment && <HvacEquipment />}
           {isExhaustFanWorkorder && <ExhaustFanEquipment />}
+          {isHvacPm && <HvacPmEquipment />}
         </Grid>
       </Grid>
     </Container>
