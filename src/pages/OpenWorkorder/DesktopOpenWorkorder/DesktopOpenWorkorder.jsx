@@ -23,6 +23,7 @@ import LocationOn from "@mui/icons-material/LocationOn";
 
 // Context
 import { WorkorderContext } from "../OpenWorkorder";
+import ExhaustFanEquipment from "./components/ExhaustFanEquipment";
 
 function DesktopOpenWorkorder() {
   const { workorder } = useContext(WorkorderContext);
@@ -40,6 +41,10 @@ function DesktopOpenWorkorder() {
   const isHvacAssessment =
     workorder?.workorderType === "Warranty" &&
     workorder?.service === "Assessment";
+
+  const isExhaustFanWorkorder =
+    workorder?.workorderType === "Warranty" &&
+    workorder?.service === "Exhaust Fan PM";
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -73,7 +78,9 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <WorkorderDetailsSection />
             <SiteDetailsSection />
-            {!isHvacAssessment && <InitialImagesSection />}
+            {!isHvacAssessment && !isExhaustFanWorkorder && (
+              <InitialImagesSection />
+            )}
           </Stack>
         </Grid>
 
@@ -82,15 +89,18 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <PricingSection />
             {/* Move Notes here in HVAC work orders to make room for HVAC equipment details in the right column */}
-            {isHvacAssessment && <NotesSection />}
-            {!isHvacAssessment && <AfterImagesSection />}
+            {(isHvacAssessment || isExhaustFanWorkorder) && <NotesSection />}
+            {!isHvacAssessment && !isExhaustFanWorkorder && (
+              <AfterImagesSection />
+            )}
           </Stack>
         </Grid>
 
         {/* Right Column */}
         <Grid size={{ xs: 12, lg: 4 }}>
-          {!isHvacAssessment && <NotesSection />}
+          {!isHvacAssessment && !isExhaustFanWorkorder && <NotesSection />}
           {isHvacAssessment && <HvacEquipment />}
+          {isExhaustFanWorkorder && <ExhaustFanEquipment />}
         </Grid>
       </Grid>
     </Container>

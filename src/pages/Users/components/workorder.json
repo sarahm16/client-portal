@@ -1,0 +1,36 @@
+{
+  "siteId": "38492682-a790-48a0-b25b-089982c07ed5",
+  "barcode": "1121",
+  "make": "Carrier ",
+  "model": "48TCEA042A5A0A0A0A",
+  "serialNumber": "1015C59372",
+  "tonnage": "4",
+  "age": "",
+  "manufactureDate": "",
+  "workorderId": "NFC-83739",
+  "service": "HVAC PM",
+
+  "condition": "Fair",
+  "filterSize": "16x25x2",
+  "numberOfFilters": "2",
+  "beltInfo": "AX36",
+  "notes": "No access to roof.",
+  "startupTest": "",
+
+  "beforeImage": {
+    "url": ""
+  },
+  "afterImage": {
+    "url": ""
+  },
+  "checklist": {
+    "cleanUnit": true,
+    "changeFilters": true,
+    "inspectBelts": true,
+    "checkElectrical": true,
+    "drainPans": true,
+    "coils": true,
+    "refrigerantLevels": true
+  },
+  "createdAt": "2026-03-06T19:01:03.618Z"
+}
