@@ -10,6 +10,7 @@ import InitialImagesSection from "./components/BeforeImages";
 import HvacEquipment from "./components/HvacEquipment";
 import ExhaustFanEquipment from "./components/ExhaustFanEquipment";
 import HvacPmEquipment from "./components/HvacPmEquipment";
+import IceMachineEquipment from "./components/IceMachineEquipment";
 
 // MUI Components
 import Box from "@mui/material/Box";
@@ -50,6 +51,10 @@ function DesktopOpenWorkorder() {
   const isHvacPm =
     workorder?.workorderType === "Warranty" && workorder?.service === "HVAC PM";
 
+  const isIceMachineWorkorder =
+    workorder?.workorderType === "Warranty" &&
+    workorder?.service === "Ice Machines";
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
@@ -82,9 +87,10 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <WorkorderDetailsSection />
             <SiteDetailsSection />
-            {!isHvacAssessment && !isExhaustFanWorkorder && !isHvacPm && (
-              <InitialImagesSection />
-            )}
+            {!isHvacAssessment &&
+              !isExhaustFanWorkorder &&
+              !isHvacPm &&
+              !isIceMachineWorkorder && <InitialImagesSection />}
           </Stack>
         </Grid>
 
@@ -93,23 +99,27 @@ function DesktopOpenWorkorder() {
           <Stack direction="column" spacing={3}>
             <PricingSection />
             {/* Move Notes here in HVAC work orders to make room for HVAC equipment details in the right column */}
-            {(isHvacAssessment || isExhaustFanWorkorder || isHvacPm) && (
-              <NotesSection />
-            )}
-            {!isHvacAssessment && !isExhaustFanWorkorder && !isHvacPm && (
-              <AfterImagesSection />
-            )}
+            {(isHvacAssessment ||
+              isExhaustFanWorkorder ||
+              isHvacPm ||
+              isIceMachineWorkorder) && <NotesSection />}
+            {!isHvacAssessment &&
+              !isExhaustFanWorkorder &&
+              !isHvacPm &&
+              !isIceMachineWorkorder && <AfterImagesSection />}
           </Stack>
         </Grid>
 
         {/* Right Column */}
         <Grid size={{ xs: 12, lg: 4 }}>
-          {!isHvacAssessment && !isExhaustFanWorkorder && !isHvacPm && (
-            <NotesSection />
-          )}
+          {!isHvacAssessment &&
+            !isExhaustFanWorkorder &&
+            !isHvacPm &&
+            !isIceMachineWorkorder && <NotesSection />}
           {isHvacAssessment && <HvacEquipment />}
           {isExhaustFanWorkorder && <ExhaustFanEquipment />}
           {isHvacPm && <HvacPmEquipment />}
+          {isIceMachineWorkorder && <IceMachineEquipment />}
         </Grid>
       </Grid>
     </Container>
