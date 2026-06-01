@@ -13,6 +13,7 @@ import Container from "@mui/material/Container";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
+import TextField from "@mui/material/TextField";
 
 // MUI Icons
 import AddIcon from "@mui/icons-material/Add";
@@ -26,6 +27,9 @@ import { DataGrid } from "@mui/x-data-grid";
 // Components
 import CreateSiteForm from "./components/CreateSiteForm";
 
+// Utilities
+import deepSearch from "../../utilities/deepSearch";
+
 // Helper function to display status
 const getDisplayStatus = (status) => {
   if (["Sourcing", "Unassigned"].includes(status)) {
@@ -34,12 +38,44 @@ const getDisplayStatus = (status) => {
   return status;
 };
 
+function SearchInput({ onSearch }) {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Debounced search effect
+  useEffect(() => {
+    console.log("search term changed:", searchTerm);
+    const timer = setTimeout(() => {
+      onSearch(searchTerm);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  return (
+    <TextField
+      value={searchTerm}
+      onChange={(e) => {
+        setSearchTerm(e.target.value);
+      }}
+      placeholder="Search locations..."
+      size="small"
+      sx={{ width: 300 }}
+    />
+  );
+}
+
 function Sites() {
   const { user } = useAuth();
+  const [unfilteredSites, setUnfilteredSites] = useState([]);
   const [sites, setSites] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const client = user?.client?.name;
+  const isAdmin = user?.role === "Admin";
+
+  const includeEquipmentColumn = client === "MetroNet" || isAdmin;
+
+  console.log("includesEquipment", includeEquipmentColumn);
 
   useEffect(() => {
     const fetchSites = async () => {
@@ -49,6 +85,7 @@ function Sites() {
         );
         console.log("Fetched sites:", response);
         setSites(response);
+        setUnfilteredSites(response);
       } catch (error) {
         console.error("Error fetching sites:", error);
       }
@@ -56,6 +93,16 @@ function Sites() {
 
     fetchSites();
   }, [user]);
+
+  const searchSites = (searchTerm) => {
+    if (!searchTerm) {
+      setSites(unfilteredSites);
+      return;
+    }
+
+    const filtered = deepSearch(searchTerm, unfilteredSites);
+    setSites(filtered);
+  };
 
   const columns = [
     {
@@ -344,6 +391,10 @@ function Sites() {
           </Box>
         </Box>
 
+        <Box sx={{ display: "flex", justifyContent: "flex-end", my: 1 }}>
+          <SearchInput onSearch={searchSites} />
+        </Box>
+
         {/* Data Grid */}
         <Paper
           elevation={0}
@@ -359,12 +410,6 @@ function Sites() {
             columns={columns}
             disableRowSelectionOnClick
             autoHeight
-            pageSizeOptions={[10, 25, 50, 100]}
-            initialState={{
-              pagination: {
-                paginationModel: { pageSize: 25 },
-              },
-            }}
             getRowHeight={() => "auto"}
             sx={{
               border: "none",

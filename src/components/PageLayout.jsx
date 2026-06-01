@@ -44,6 +44,8 @@ import HelpForm from "./HelpForm";
 
 const INITIAL_FORM = { subject: "", category: "", description: "" };
 
+/* 22ad3841-22ae-44f2-9639-2b49961fbe71
+ */
 function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -59,6 +61,13 @@ function Layout({ children }) {
     "manage_employees",
     "manage_managers",
   ]);
+
+  const client = user?.client;
+  const role = user?.role;
+
+  const canAccessEquipment = role === "Admin" || client?.name === "MetroNet";
+
+  console.log("User canAccessEquipment:", canAccessEquipment);
 
   const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleProfileMenuClose = () => setAnchorEl(null);

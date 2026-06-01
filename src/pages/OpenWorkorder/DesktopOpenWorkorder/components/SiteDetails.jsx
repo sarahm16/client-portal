@@ -73,7 +73,8 @@ function SiteDetailsSection() {
             Location
           </Typography>
           <Typography variant="body1" fontWeight={700} sx={{ mt: 0.5 }}>
-            {workorder?.site?.name || workorder?.site?.store}
+            {workorder?.site?.name || workorder?.site?.store} ({site?.city},{" "}
+            {site?.state})
           </Typography>
         </Box>
 
