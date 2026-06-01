@@ -42,9 +42,7 @@ const getDisplayStatus = (status) => {
 function SearchInput({ onSearch }) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Debounced search effect
   useEffect(() => {
-    console.log("search term changed:", searchTerm);
     const timer = setTimeout(() => {
       onSearch(searchTerm);
     }, 200);
@@ -55,9 +53,7 @@ function SearchInput({ onSearch }) {
   return (
     <TextField
       value={searchTerm}
-      onChange={(e) => {
-        setSearchTerm(e.target.value);
-      }}
+      onChange={(e) => setSearchTerm(e.target.value)}
       placeholder="Search locations..."
       size="small"
       sx={{ width: 300 }}
@@ -74,10 +70,7 @@ function Sites() {
 
   const client = user?.client?.name;
   const isAdmin = user?.role === "Admin";
-
   const includeEquipmentColumn = client === "MetroNet" || isAdmin;
-
-  console.log("includesEquipment", includeEquipmentColumn);
 
   useEffect(() => {
     const fetchSites = async () => {
@@ -85,7 +78,6 @@ function Sites() {
         const response = await querySites(
           `SELECT * FROM c WHERE c.client = '${client}'`,
         );
-        console.log("Fetched sites:", response);
         setSites(response);
         setUnfilteredSites(response);
       } catch (error) {
@@ -101,9 +93,7 @@ function Sites() {
       setSites(unfilteredSites);
       return;
     }
-
-    const filtered = deepSearch(searchTerm, unfilteredSites);
-    setSites(filtered);
+    setSites(deepSearch(searchTerm, unfilteredSites));
   };
 
   const columns = [
@@ -209,10 +199,7 @@ function Sites() {
             label={params.value}
             size="small"
             variant="outlined"
-            sx={{
-              fontWeight: 600,
-              borderWidth: 2,
-            }}
+            sx={{ fontWeight: 600, borderWidth: 2 }}
           />
         </Box>
       ),
@@ -225,7 +212,6 @@ function Sites() {
       renderCell: (params) => {
         const displayStatus = getDisplayStatus(params.value);
         const statusColor = siteStatusColors[displayStatus] || "#95A5A6";
-
         return (
           <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
             <Chip
@@ -237,9 +223,7 @@ function Sites() {
                 fontWeight: 600,
                 borderRadius: "6px",
                 height: 28,
-                "& .MuiChip-label": {
-                  px: 1.5,
-                },
+                "& .MuiChip-label": { px: 1.5 },
               }}
             />
           </Box>
@@ -257,11 +241,7 @@ function Sites() {
   };
 
   const handleRowClick = (params) => {
-    console.log("Row clicked:", params);
-    const site = params.row;
-    setSelectedSite(site);
-    // You can also navigate to a detail page here if needed
-    // navigate(`/sites/${site.id}`);
+    setSelectedSite(params.row);
   };
 
   const closePanel = () => {
@@ -278,13 +258,19 @@ function Sites() {
         />
       )}
 
-      {selectedSite && (
-        <SelectedSitePanel site={selectedSite} onClose={closePanel} />
-      )}
+      <SelectedSitePanel site={selectedSite} onClose={closePanel} />
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container
+        maxWidth="xl"
+        sx={{
+          py: 4,
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, flexShrink: 0 }}>
           <Box
             sx={{
               display: "flex",
@@ -294,13 +280,7 @@ function Sites() {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Avatar
-                sx={{
-                  bgcolor: "primary.main",
-                  width: 56,
-                  height: 56,
-                }}
-              >
+              <Avatar sx={{ bgcolor: "primary.main", width: 56, height: 56 }}>
                 <MapIcon sx={{ fontSize: 32 }} />
               </Avatar>
               <Box>
@@ -329,9 +309,7 @@ function Sites() {
                 px: 3,
                 py: 1.5,
                 boxShadow: 3,
-                "&:hover": {
-                  boxShadow: 4,
-                },
+                "&:hover": { boxShadow: 4 },
               }}
             >
               Add Location
@@ -409,11 +387,18 @@ function Sites() {
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", my: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            mb: 1,
+            flexShrink: 0,
+          }}
+        >
           <SearchInput onSearch={searchSites} />
         </Box>
 
-        {/* Data Grid */}
+        {/* Data Grid — fills remaining vertical space */}
         <Paper
           elevation={0}
           sx={{
@@ -421,16 +406,22 @@ function Sites() {
             borderColor: "divider",
             borderRadius: 3,
             overflow: "hidden",
+            flex: 1,
+            minHeight: 0,
           }}
         >
           <DataGrid
             rows={sites}
             columns={columns}
             disableRowSelectionOnClick
-            autoHeight
             getRowHeight={() => "auto"}
             onRowClick={handleRowClick}
+            pageSizeOptions={[25, 50, 100]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 25 } },
+            }}
             sx={{
+              height: "100%",
               border: "none",
               "& .MuiDataGrid-columnHeaders": {
                 bgcolor: "grey.50",
@@ -442,9 +433,7 @@ function Sites() {
                 letterSpacing: "0.5px",
               },
               "& .MuiDataGrid-columnHeader": {
-                "&:focus, &:focus-within": {
-                  outline: "none",
-                },
+                "&:focus, &:focus-within": { outline: "none" },
               },
               "& .MuiDataGrid-cell": {
                 borderBottom: "1px solid",
@@ -452,29 +441,19 @@ function Sites() {
                 py: 1.5,
                 display: "flex",
                 alignItems: "center",
-                "&:focus, &:focus-within": {
-                  outline: "none",
-                },
+                "&:focus, &:focus-within": { outline: "none" },
               },
               "& .MuiDataGrid-row": {
-                "&:hover": {
-                  bgcolor: "primary.50",
-                  cursor: "pointer",
-                },
+                "&:hover": { bgcolor: "primary.50", cursor: "pointer" },
                 "&.Mui-selected": {
                   bgcolor: "primary.50",
-                  "&:hover": {
-                    bgcolor: "primary.100",
-                  },
+                  "&:hover": { bgcolor: "primary.100" },
                 },
               },
               "& .MuiDataGrid-footerContainer": {
                 borderTop: "2px solid",
                 borderColor: "divider",
                 bgcolor: "grey.50",
-              },
-              "& .MuiDataGrid-virtualScroller": {
-                minHeight: sites.length === 0 ? "200px" : "auto",
               },
               "& .MuiDataGrid-overlay": {
                 bgcolor: "background.paper",
