@@ -26,6 +26,7 @@ import { DataGrid } from "@mui/x-data-grid";
 
 // Components
 import CreateSiteForm from "./components/CreateSiteForm";
+import SelectedSitePanel from "./components/SelectedSitePanel";
 
 // Utilities
 import deepSearch from "../../utilities/deepSearch";
@@ -69,6 +70,7 @@ function Sites() {
   const [unfilteredSites, setUnfilteredSites] = useState([]);
   const [sites, setSites] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedSite, setSelectedSite] = useState(null);
 
   const client = user?.client?.name;
   const isAdmin = user?.role === "Admin";
@@ -254,6 +256,18 @@ function Sites() {
     }
   };
 
+  const handleRowClick = (params) => {
+    console.log("Row clicked:", params);
+    const site = params.row;
+    setSelectedSite(site);
+    // You can also navigate to a detail page here if needed
+    // navigate(`/sites/${site.id}`);
+  };
+
+  const closePanel = () => {
+    setSelectedSite(null);
+  };
+
   return (
     <>
       {showCreateModal && (
@@ -262,6 +276,10 @@ function Sites() {
           onClose={() => setShowCreateModal(false)}
           onSave={(newSite) => handleSaveSite(newSite)}
         />
+      )}
+
+      {selectedSite && (
+        <SelectedSitePanel site={selectedSite} onClose={closePanel} />
       )}
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -411,6 +429,7 @@ function Sites() {
             disableRowSelectionOnClick
             autoHeight
             getRowHeight={() => "auto"}
+            onRowClick={handleRowClick}
             sx={{
               border: "none",
               "& .MuiDataGrid-columnHeaders": {
