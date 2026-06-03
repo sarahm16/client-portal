@@ -8,6 +8,7 @@ import Users from "./pages/Users/Users";
 import Workorders from "./pages/WorkOrders/WorkOrders";
 import OpenWorkorder from "./pages/OpenWorkorder/OpenWorkorder";
 import Sites from "./pages/Sites/Sites";
+import Equipment from "./pages/Equipment/Equipment";
 
 // local imports
 import { useAuth } from "./auth/hooks/AuthContext";
@@ -190,6 +191,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route exact path="/equipment" element={
+          <ProtectedRoute permission="view_equipment"><Equipment /></ProtectedRoute>
+        } />
       </Routes>
     </ThemeProvider>
   );

@@ -41,6 +41,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import SendIcon from "@mui/icons-material/Send";
 import CloseIcon from "@mui/icons-material/Close";
 import HelpForm from "./HelpForm";
+import { Construction } from "@mui/icons-material";
 
 const INITIAL_FORM = { subject: "", category: "", description: "" };
 
@@ -173,6 +174,17 @@ function Layout({ children }) {
             >
               Sites
             </Button>
+            {
+              canAccessEquipment && (
+                <Button
+                  startIcon={<Construction />}
+                  onClick={() => handleNavigation("/equipment")}
+                  sx={navButtonSx("/equipment")}
+                >
+                  Equipment
+                </Button>
+              )
+            }
           </Box>
 
           {/* Mobile Menu Button */}
@@ -298,6 +310,14 @@ function Layout({ children }) {
           </ListItemIcon>
           Sites
         </MenuItem>
+        {canAccessEquipment && (
+                  <MenuItem onClick={() => handleNavigation("/equipment")}>
+          <ListItemIcon>
+            <Construction fontSize="small" />
+          </ListItemIcon>
+          Equipment
+        </MenuItem>
+        ) }
         <Divider />
         {/* ── Help & Support in mobile menu ── */}
         {/*         <MenuItem onClick={handleHelpOpen}>
