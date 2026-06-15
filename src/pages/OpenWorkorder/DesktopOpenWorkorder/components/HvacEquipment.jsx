@@ -46,6 +46,7 @@ import {
   ExitToApp,
   Download,
 } from "@mui/icons-material";
+import AdditionalImages from "./AdditionalImages";
 
 function HvacEquipment() {
   const workorderContext = useContext(WorkorderContext);
@@ -733,6 +734,8 @@ function HvacEquipment() {
               </CardContent>
             </Card>
           )}
+
+          <AdditionalImages />
         </Stack>
       </Stack>
     </>

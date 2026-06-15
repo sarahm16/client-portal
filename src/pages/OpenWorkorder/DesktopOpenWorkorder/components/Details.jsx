@@ -229,7 +229,7 @@ function WorkorderDetailsSection() {
       "sarah.carter@evergreenbrands.com",
       "stehou@nationalfacilitycontractors.com",
       "barern@nationalfacilitycontractors.com",
-      "alipyl@nationalfacilitycontractors.com",
+      "jonbon@nationalfacilitycontractors.com",
     ]);
 
     await sendEmailFromHTML(

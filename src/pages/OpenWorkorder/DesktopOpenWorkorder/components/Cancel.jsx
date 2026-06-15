@@ -177,7 +177,7 @@ function CancelWorkorder() {
       "sarah.carter@evergreenbrands.com",
       "stehou@nationalfacilitycontractors.com",
       "barern@nationalfacilitycontractors.com",
-      "alipyl@nationalfacilitycontractors.com",
+      "jonbon@nationalfacilitycontractors.com",
     ]);
 
     const emailRecipients = generateEmailRecipients([

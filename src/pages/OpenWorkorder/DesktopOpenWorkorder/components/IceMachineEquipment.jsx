@@ -46,6 +46,7 @@ import {
   ExitToApp,
   Download,
 } from "@mui/icons-material";
+import AdditionalImages from "./AdditionalImages";
 
 function IceMachineEquipment() {
   const workorderContext = useContext(WorkorderContext);
@@ -555,6 +556,8 @@ function IceMachineEquipment() {
               </CardContent>
             </Card>
           )}
+
+          <AdditionalImages />
         </Stack>
       </Stack>
     </>

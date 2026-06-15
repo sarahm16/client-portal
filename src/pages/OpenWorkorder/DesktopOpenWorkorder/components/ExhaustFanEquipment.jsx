@@ -46,6 +46,8 @@ import {
   ExitToApp,
   Download,
 } from "@mui/icons-material";
+import AfterImagesSection from "./AfterImages";
+import AdditionalImages from "./AdditionalImages";
 
 function ExhaustFanEquipment() {
   const workorderContext = useContext(WorkorderContext);
@@ -562,6 +564,8 @@ function ExhaustFanEquipment() {
               </CardContent>
             </Card>
           )}
+
+          <AdditionalImages />
         </Stack>
       </Stack>
     </>
