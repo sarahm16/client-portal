@@ -30,13 +30,13 @@ import { DataGrid } from "@mui/x-data-grid";
 
 const SERVICE_DISPLAY_MAP = {
   "HVAC PM": "HVAC",
-  "Assessment": "HVAC",
+  Assessment: "HVAC",
   "Exhaust Fan PM": "Exhaust Fan",
   "Ice Machine": "Ice Machine",
 };
 
 const SERVICE_COLORS = {
-  "HVAC": "primary",
+  HVAC: "primary",
   "Exhaust Fan": "warning",
   "Ice Machine": "info",
 };
@@ -49,7 +49,15 @@ const getDisplayService = (service) => SERVICE_DISPLAY_MAP[service] ?? service;
 
 // ─── Toolbar ─────────────────────────────────────────────────────────────────
 
-function EquipmentToolbar({ search, onSearch, serviceFilter, onServiceFilter, onExport, totalCount, filteredCount }) {
+function EquipmentToolbar({
+  search,
+  onSearch,
+  serviceFilter,
+  onServiceFilter,
+  onExport,
+  totalCount,
+  filteredCount,
+}) {
   return (
     <Box
       sx={{
@@ -97,7 +105,11 @@ function EquipmentToolbar({ search, onSearch, serviceFilter, onServiceFilter, on
               label={svc}
               size="small"
               onClick={() => onServiceFilter(svc)}
-              color={serviceFilter === svc ? (SERVICE_COLORS[svc] ?? "primary") : "default"}
+              color={
+                serviceFilter === svc
+                  ? (SERVICE_COLORS[svc] ?? "primary")
+                  : "default"
+              }
               variant={serviceFilter === svc ? "filled" : "outlined"}
               sx={{
                 fontWeight: serviceFilter === svc ? 700 : 500,
@@ -200,6 +212,7 @@ function Equipment() {
           eq.zip,
           eq.make,
           eq.model,
+          eq.serialNumber,
           eq.tonnage,
           eq.age,
           eq.condition,
@@ -225,6 +238,7 @@ function Equipment() {
       "Zip Code": eq.zip,
       Make: eq.make ?? "",
       Model: eq.model ?? "",
+      "Serial Number": eq.serialNumber ?? "",
       Tonnage: eq.tonnage ?? "",
       Age: eq.age ?? "",
       Condition: eq.condition ?? "",
@@ -244,7 +258,10 @@ function Equipment() {
       headerName: "Barcode",
       width: 150,
       renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontFamily: "monospace", fontWeight: 600 }}>
+        <Typography
+          variant="body2"
+          sx={{ fontFamily: "monospace", fontWeight: 600 }}
+        >
           {params.value ?? "—"}
         </Typography>
       ),
@@ -314,7 +331,10 @@ function Equipment() {
       headerName: "Make",
       width: 120,
       renderCell: (params) => (
-        <Typography variant="body2" color={params.value ? "text.primary" : "text.disabled"}>
+        <Typography
+          variant="body2"
+          color={params.value ? "text.primary" : "text.disabled"}
+        >
           {params.value ?? "—"}
         </Typography>
       ),
@@ -324,7 +344,23 @@ function Equipment() {
       headerName: "Model",
       width: 130,
       renderCell: (params) => (
-        <Typography variant="body2" color={params.value ? "text.primary" : "text.disabled"}>
+        <Typography
+          variant="body2"
+          color={params.value ? "text.primary" : "text.disabled"}
+        >
+          {params.value ?? "—"}
+        </Typography>
+      ),
+    },
+    {
+      field: "serialNumber",
+      headerName: "Serial Number",
+      width: 150,
+      renderCell: (params) => (
+        <Typography
+          variant="body2"
+          color={params.value ? "text.primary" : "text.disabled"}
+        >
           {params.value ?? "—"}
         </Typography>
       ),
@@ -336,7 +372,10 @@ function Equipment() {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
-        <Typography variant="body2" color={params.value ? "text.primary" : "text.disabled"}>
+        <Typography
+          variant="body2"
+          color={params.value ? "text.primary" : "text.disabled"}
+        >
           {params.value ?? "—"}
         </Typography>
       ),
@@ -348,7 +387,10 @@ function Equipment() {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
-        <Typography variant="body2" color={params.value ? "text.primary" : "text.disabled"}>
+        <Typography
+          variant="body2"
+          color={params.value ? "text.primary" : "text.disabled"}
+        >
           {params.value ?? "—"}
         </Typography>
       ),
@@ -358,7 +400,12 @@ function Equipment() {
       headerName: "Condition",
       width: 120,
       renderCell: (params) => {
-        if (!params.value) return <Typography variant="body2" color="text.disabled">—</Typography>;
+        if (!params.value)
+          return (
+            <Typography variant="body2" color="text.disabled">
+              —
+            </Typography>
+          );
         const conditionColors = {
           Good: "success",
           Fair: "warning",
@@ -392,7 +439,11 @@ function Equipment() {
             <HandymanIcon sx={{ fontSize: 32 }} />
           </Avatar>
           <Box>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: 700, mb: 0.5 }}
+            >
               Equipment
             </Typography>
             <Typography variant="body2" color="text.secondary">
