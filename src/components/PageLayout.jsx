@@ -66,7 +66,10 @@ function Layout({ children }) {
   const client = user?.client;
   const role = user?.role;
 
-  const canAccessEquipment = role === "Admin" || client?.name === "MetroNet";
+  const canAccessEquipment =
+    role === "Admin" ||
+    client?.name === "MetroNet" ||
+    client?.name === "IVX Health";
 
   console.log("User canAccessEquipment:", canAccessEquipment);
 
@@ -174,17 +177,15 @@ function Layout({ children }) {
             >
               Sites
             </Button>
-            {
-              canAccessEquipment && (
-                <Button
-                  startIcon={<Construction />}
-                  onClick={() => handleNavigation("/equipment")}
-                  sx={navButtonSx("/equipment")}
-                >
-                  Equipment
-                </Button>
-              )
-            }
+            {canAccessEquipment && (
+              <Button
+                startIcon={<Construction />}
+                onClick={() => handleNavigation("/equipment")}
+                sx={navButtonSx("/equipment")}
+              >
+                Equipment
+              </Button>
+            )}
           </Box>
 
           {/* Mobile Menu Button */}
@@ -311,13 +312,13 @@ function Layout({ children }) {
           Sites
         </MenuItem>
         {canAccessEquipment && (
-                  <MenuItem onClick={() => handleNavigation("/equipment")}>
-          <ListItemIcon>
-            <Construction fontSize="small" />
-          </ListItemIcon>
-          Equipment
-        </MenuItem>
-        ) }
+          <MenuItem onClick={() => handleNavigation("/equipment")}>
+            <ListItemIcon>
+              <Construction fontSize="small" />
+            </ListItemIcon>
+            Equipment
+          </MenuItem>
+        )}
         <Divider />
         {/* ── Help & Support in mobile menu ── */}
         {/*         <MenuItem onClick={handleHelpOpen}>

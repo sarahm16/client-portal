@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { azureClient } from "../../api/azureClient";
 import * as XLSX from "xlsx";
+import { useAuth } from "../../auth/hooks/AuthContext";
 
 // MUI Components
 import Box from "@mui/material/Box";
@@ -10,7 +11,6 @@ import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
@@ -28,11 +28,33 @@ import { DataGrid } from "@mui/x-data-grid";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+// Per-client config: the id used on equipment docs, and the equipment
+// (display) services that client can have. Add a client here to enable the tab
+// for them.
+const CLIENTS = {
+  MetroNet: {
+    name: "MetroNet",
+    id: "8b290612-3ae1-4f2d-9088-d79c1d05a3ef",
+    services: ["HVAC", "Exhaust Fan", "Ice Machine"],
+  },
+  "IVX Health": {
+    name: "IVX Health",
+    id: "646be904-fe5e-43e0-80b9-56f75ee0ffe6",
+    services: ["HVAC"],
+  },
+};
+
+const CLIENT_ID_TO_NAME = Object.fromEntries(
+  Object.values(CLIENTS).map((c) => [c.id, c.name]),
+);
+
+// Raw service string on the equipment doc -> display label used in the grid.
 const SERVICE_DISPLAY_MAP = {
   "HVAC PM": "HVAC",
   Assessment: "HVAC",
   "Exhaust Fan PM": "Exhaust Fan",
   "Ice Machine": "Ice Machine",
+  "HVAC Assessment and PM": "HVAC", // IVX Health
 };
 
 const SERVICE_COLORS = {
@@ -40,8 +62,6 @@ const SERVICE_COLORS = {
   "Exhaust Fan": "warning",
   "Ice Machine": "info",
 };
-
-const ALL_SERVICES = ["All", "HVAC", "Exhaust Fan", "Ice Machine"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -54,6 +74,7 @@ function EquipmentToolbar({
   onSearch,
   serviceFilter,
   onServiceFilter,
+  services,
   onExport,
   totalCount,
   filteredCount,
@@ -95,31 +116,33 @@ function EquipmentToolbar({
         }}
       />
 
-      {/* Service type filter */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <FilterListIcon fontSize="small" sx={{ color: "text.secondary" }} />
-        <Box sx={{ display: "flex", gap: 0.75 }}>
-          {ALL_SERVICES.map((svc) => (
-            <Chip
-              key={svc}
-              label={svc}
-              size="small"
-              onClick={() => onServiceFilter(svc)}
-              color={
-                serviceFilter === svc
-                  ? (SERVICE_COLORS[svc] ?? "primary")
-                  : "default"
-              }
-              variant={serviceFilter === svc ? "filled" : "outlined"}
-              sx={{
-                fontWeight: serviceFilter === svc ? 700 : 500,
-                cursor: "pointer",
-                fontSize: "0.72rem",
-              }}
-            />
-          ))}
+      {/* Service type filter — only shown when there's more than one option */}
+      {services.length > 2 && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <FilterListIcon fontSize="small" sx={{ color: "text.secondary" }} />
+          <Box sx={{ display: "flex", gap: 0.75 }}>
+            {services.map((svc) => (
+              <Chip
+                key={svc}
+                label={svc}
+                size="small"
+                onClick={() => onServiceFilter(svc)}
+                color={
+                  serviceFilter === svc
+                    ? (SERVICE_COLORS[svc] ?? "primary")
+                    : "default"
+                }
+                variant={serviceFilter === svc ? "filled" : "outlined"}
+                sx={{
+                  fontWeight: serviceFilter === svc ? 700 : 500,
+                  cursor: "pointer",
+                  fontSize: "0.72rem",
+                }}
+              />
+            ))}
+          </Box>
         </Box>
-      </Box>
+      )}
 
       {/* Spacer */}
       <Box sx={{ flex: 1 }} />
@@ -138,11 +161,7 @@ function EquipmentToolbar({
           size="small"
           startIcon={<DownloadIcon />}
           onClick={onExport}
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            borderRadius: 1.5,
-          }}
+          sx={{ textTransform: "none", fontWeight: 600, borderRadius: 1.5 }}
         >
           Export
         </Button>
@@ -154,39 +173,88 @@ function EquipmentToolbar({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 function Equipment() {
+  const { user } = useAuth();
+  const client = user?.client?.name;
+  const role = user?.role;
+  const isAdmin = role === "Admin";
+
+  // Which clients this user can see: all of them for Admin, otherwise just theirs.
+  const visibleClientNames = useMemo(
+    () => (isAdmin ? Object.keys(CLIENTS) : client ? [client] : []),
+    [isAdmin, client],
+  );
+  const visibleClientIds = useMemo(
+    () =>
+      new Set(visibleClientNames.map((n) => CLIENTS[n]?.id).filter(Boolean)),
+    [visibleClientNames],
+  );
+
+  // Service-filter options = union of the visible clients' services.
+  const availableServices = useMemo(() => {
+    const set = new Set();
+    visibleClientNames.forEach((n) =>
+      (CLIENTS[n]?.services || []).forEach((s) => set.add(s)),
+    );
+    return ["All", ...set];
+  }, [visibleClientNames]);
+
   const [equipmentWithSites, setEquipmentWithSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [serviceFilter, setServiceFilter] = useState("All");
 
   useEffect(() => {
+    if (visibleClientNames.length === 0) {
+      setEquipmentWithSites([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    const clientList = visibleClientNames.map((n) => `'${n}'`).join(", ");
+
     const fetchEquipment = azureClient.get(
       "/getAll?databaseId=procurement&containerId=equipment",
     );
 
     const fetchSites = azureClient.post(
       "/nosqlquery?databaseId=procurement&containerId=sites",
-      { query: "SELECT * FROM c where c.client = 'MetroNet'" },
+      { query: `SELECT * FROM c WHERE c.client IN (${clientList})` },
     );
 
     Promise.all([fetchEquipment, fetchSites])
       .then(([equipmentResponse, sitesResponse]) => {
-        const transformed = equipmentResponse.data.map((eq) => {
-          const site = sitesResponse.data.find((s) => s.id === eq.siteId);
-          return {
-            ...eq,
-            location: site?.store ?? "—",
-            address: site?.address ?? "—",
-            city: site?.city ?? "—",
-            state: site?.state ?? "—",
-            zip: site?.zipcode ?? "—",
-          };
-        });
+        const sites = sitesResponse.data || [];
+        const siteById = new Map(sites.map((s) => [s.id, s]));
+        const visibleSiteIds = new Set(sites.map((s) => s.id));
+
+        const transformed = (equipmentResponse.data || [])
+          // keep only equipment belonging to a visible client
+          .filter(
+            (eq) =>
+              (visibleClientIds.has(eq.clientId) ||
+                visibleSiteIds.has(eq.siteId)) &&
+              !eq.demo,
+          )
+          .map((eq) => {
+            const site = siteById.get(eq.siteId);
+            return {
+              ...eq,
+              clientName: site?.client ?? CLIENT_ID_TO_NAME[eq.clientId] ?? "—",
+              location: site?.store ?? "—",
+              address: site?.address ?? "—",
+              city: site?.city ?? "—",
+              state: site?.state ?? "—",
+              zip: site?.zipcode ?? "—",
+            };
+          });
+
         setEquipmentWithSites(transformed);
       })
       .catch((err) => console.error("Error fetching data:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [visibleClientNames, visibleClientIds]);
 
   // ── Filtering ────────────────────────────────────────────────────────────
 
@@ -205,6 +273,7 @@ function Equipment() {
         [
           eq.barcode,
           eq.service,
+          eq.clientName,
           eq.location,
           eq.address,
           eq.city,
@@ -229,6 +298,7 @@ function Equipment() {
 
   const handleExport = useCallback(() => {
     const exportData = filteredRows.map((eq) => ({
+      ...(isAdmin ? { Client: eq.clientName } : {}),
       Barcode: eq.barcode ?? "",
       "Equipment Type": getDisplayService(eq.service),
       Location: eq.location,
@@ -248,184 +318,196 @@ function Equipment() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Equipment");
     XLSX.writeFile(wb, "equipment-export.xlsx");
-  }, [filteredRows]);
+  }, [filteredRows, isAdmin]);
 
   // ── Columns ──────────────────────────────────────────────────────────────
 
-  const columns = [
-    {
-      field: "barcode",
-      headerName: "Barcode",
-      width: 150,
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          sx={{ fontFamily: "monospace", fontWeight: 600 }}
-        >
-          {params.value ?? "—"}
-        </Typography>
-      ),
-    },
-    {
-      field: "service",
-      headerName: "Type",
-      width: 130,
-      renderCell: (params) => {
-        const display = getDisplayService(params.value);
-        const color = SERVICE_COLORS[display] ?? "default";
-        return (
-          <Chip
-            label={display}
-            size="small"
-            color={color}
-            variant="outlined"
-            sx={{ fontWeight: 600, fontSize: "0.72rem" }}
-          />
-        );
+  const columns = useMemo(() => {
+    const cols = [
+      {
+        field: "barcode",
+        headerName: "Barcode",
+        width: 150,
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            sx={{ fontFamily: "monospace", fontWeight: 600 }}
+          >
+            {params.value ?? "—"}
+          </Typography>
+        ),
       },
-    },
-    {
-      field: "location",
-      headerName: "Location",
-      flex: 1,
-      minWidth: 160,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {params.value}
-        </Typography>
-      ),
-    },
-    {
-      field: "address",
-      headerName: "Address",
-      flex: 1.2,
-      minWidth: 180,
-    },
-    {
-      field: "city",
-      headerName: "City",
-      width: 130,
-    },
-    {
-      field: "state",
-      headerName: "State",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          size="small"
-          variant="outlined"
-          sx={{ fontWeight: 600, borderWidth: 2, fontSize: "0.72rem" }}
-        />
-      ),
-    },
-    {
-      field: "zip",
-      headerName: "Zip",
-      width: 90,
-    },
-    {
-      field: "make",
-      headerName: "Make",
-      width: 120,
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          color={params.value ? "text.primary" : "text.disabled"}
-        >
-          {params.value ?? "—"}
-        </Typography>
-      ),
-    },
-    {
-      field: "model",
-      headerName: "Model",
-      width: 130,
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          color={params.value ? "text.primary" : "text.disabled"}
-        >
-          {params.value ?? "—"}
-        </Typography>
-      ),
-    },
-    {
-      field: "serialNumber",
-      headerName: "Serial Number",
-      width: 150,
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          color={params.value ? "text.primary" : "text.disabled"}
-        >
-          {params.value ?? "—"}
-        </Typography>
-      ),
-    },
-    {
-      field: "tonnage",
-      headerName: "Tonnage",
-      width: 100,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          color={params.value ? "text.primary" : "text.disabled"}
-        >
-          {params.value ?? "—"}
-        </Typography>
-      ),
-    },
-    {
-      field: "age",
-      headerName: "Age",
-      width: 80,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          color={params.value ? "text.primary" : "text.disabled"}
-        >
-          {params.value ?? "—"}
-        </Typography>
-      ),
-    },
-    {
-      field: "condition",
-      headerName: "Condition",
-      width: 120,
-      renderCell: (params) => {
-        if (!params.value)
+      {
+        field: "service",
+        headerName: "Type",
+        width: 130,
+        renderCell: (params) => {
+          const display = getDisplayService(params.value);
+          const color = SERVICE_COLORS[display] ?? "default";
           return (
-            <Typography variant="body2" color="text.disabled">
-              —
-            </Typography>
+            <Chip
+              label={display}
+              size="small"
+              color={color}
+              variant="outlined"
+              sx={{ fontWeight: 600, fontSize: "0.72rem" }}
+            />
           );
-        const conditionColors = {
-          Good: "success",
-          Fair: "warning",
-          Poor: "error",
-        };
-        const color = conditionColors[params.value] ?? "default";
-        return (
+        },
+      },
+      {
+        field: "location",
+        headerName: "Location",
+        flex: 1,
+        minWidth: 160,
+        renderCell: (params) => (
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {params.value}
+          </Typography>
+        ),
+      },
+      { field: "address", headerName: "Address", flex: 1.2, minWidth: 180 },
+      { field: "city", headerName: "City", width: 130 },
+      {
+        field: "state",
+        headerName: "State",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (params) => (
           <Chip
             label={params.value}
             size="small"
-            color={color}
-            variant="filled"
+            variant="outlined"
+            sx={{ fontWeight: 600, borderWidth: 2, fontSize: "0.72rem" }}
+          />
+        ),
+      },
+      { field: "zip", headerName: "Zip", width: 90 },
+      {
+        field: "make",
+        headerName: "Make",
+        width: 120,
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            color={params.value ? "text.primary" : "text.disabled"}
+          >
+            {params.value ?? "—"}
+          </Typography>
+        ),
+      },
+      {
+        field: "model",
+        headerName: "Model",
+        width: 130,
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            color={params.value ? "text.primary" : "text.disabled"}
+          >
+            {params.value ?? "—"}
+          </Typography>
+        ),
+      },
+      {
+        field: "serialNumber",
+        headerName: "Serial Number",
+        width: 150,
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            color={params.value ? "text.primary" : "text.disabled"}
+          >
+            {params.value ?? "—"}
+          </Typography>
+        ),
+      },
+      {
+        field: "tonnage",
+        headerName: "Tonnage",
+        width: 100,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            color={params.value ? "text.primary" : "text.disabled"}
+          >
+            {params.value ?? "—"}
+          </Typography>
+        ),
+      },
+      {
+        field: "age",
+        headerName: "Age",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+        renderCell: (params) => (
+          <Typography
+            variant="body2"
+            color={params.value ? "text.primary" : "text.disabled"}
+          >
+            {params.value ?? "—"}
+          </Typography>
+        ),
+      },
+      {
+        field: "condition",
+        headerName: "Condition",
+        width: 120,
+        renderCell: (params) => {
+          if (!params.value)
+            return (
+              <Typography variant="body2" color="text.disabled">
+                —
+              </Typography>
+            );
+          const conditionColors = {
+            Good: "success",
+            Fair: "warning",
+            Poor: "error",
+          };
+          const color = conditionColors[params.value] ?? "default";
+          return (
+            <Chip
+              label={params.value}
+              size="small"
+              color={color}
+              variant="filled"
+              sx={{ fontWeight: 600, fontSize: "0.72rem" }}
+            />
+          );
+        },
+      },
+    ];
+
+    // Admins view multiple clients, so lead with a Client column.
+    if (isAdmin) {
+      cols.unshift({
+        field: "clientName",
+        headerName: "Client",
+        width: 130,
+        renderCell: (params) => (
+          <Chip
+            label={params.value}
+            size="small"
+            variant="outlined"
             sx={{ fontWeight: 600, fontSize: "0.72rem" }}
           />
-        );
-      },
-    },
-  ];
+        ),
+      });
+    }
+
+    return cols;
+  }, [isAdmin]);
 
   // ── Render ────────────────────────────────────────────────────────────────
+
+  const subtitle = isAdmin
+    ? "All equipment across all client locations"
+    : `All equipment across ${client || "your"} locations`;
 
   return (
     <Container
@@ -447,7 +529,7 @@ function Equipment() {
               Equipment
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              All equipment across MetroNet locations
+              {subtitle}
             </Typography>
           </Box>
         </Box>
@@ -472,6 +554,7 @@ function Equipment() {
           onSearch={setSearch}
           serviceFilter={serviceFilter}
           onServiceFilter={setServiceFilter}
+          services={availableServices}
           onExport={handleExport}
           totalCount={equipmentWithSites.length}
           filteredCount={filteredRows.length}
@@ -483,9 +566,7 @@ function Equipment() {
           loading={loading}
           disableRowSelectionOnClick
           pageSizeOptions={[25, 50, 100]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 25 } },
-          }}
+          initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
           sx={{
             flex: 1,
             border: "none",
@@ -508,17 +589,13 @@ function Equipment() {
               alignItems: "center",
               "&:focus, &:focus-within": { outline: "none" },
             },
-            "& .MuiDataGrid-row:hover": {
-              bgcolor: "primary.50",
-            },
+            "& .MuiDataGrid-row:hover": { bgcolor: "primary.50" },
             "& .MuiDataGrid-footerContainer": {
               borderTop: "2px solid",
               borderColor: "divider",
               bgcolor: "grey.50",
             },
-            "& .MuiDataGrid-overlay": {
-              bgcolor: "background.paper",
-            },
+            "& .MuiDataGrid-overlay": { bgcolor: "background.paper" },
           }}
         />
       </Paper>
